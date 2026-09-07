@@ -15,6 +15,13 @@ export interface HeaderProps {
 export function Header({ onOpenMobileNav }: HeaderProps) {
   const { pathname } = useLocation();
   const current = NAV_ITEMS.find((item) => pathname.startsWith(item.to));
+  const context =
+    current?.label ??
+    (pathname.startsWith("/follow-ups")
+      ? "Follow-ups"
+      : pathname.startsWith("/notifications")
+        ? "Notifications"
+        : "DopeOrca OS");
 
   return (
     <header className={styles.header}>
@@ -27,7 +34,7 @@ export function Header({ onOpenMobileNav }: HeaderProps) {
         >
           <Icon name="panel-left" size={18} />
         </button>
-        <span className={styles.context}>{current?.label ?? "DopeOrca OS"}</span>
+        <span className={styles.context}>{context}</span>
       </div>
 
       <div className={styles.center}>

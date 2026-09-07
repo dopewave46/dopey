@@ -17,6 +17,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "CRM", to: "/crm", icon: "crm", primaryMobile: true },
   { label: "Leads", to: "/leads", icon: "leads", primaryMobile: true },
   { label: "Projects", to: "/projects", icon: "projects", primaryMobile: true },
+  { label: "Clients", to: "/clients", icon: "building" },
   { label: "Tasks", to: "/tasks", icon: "tasks", primaryMobile: true },
   { label: "Finance", to: "/finance", icon: "finance" },
   { label: "Analytics", to: "/analytics", icon: "analytics" },

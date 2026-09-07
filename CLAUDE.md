@@ -54,10 +54,18 @@ src/
 
 ## Status
 
-- ✅ Prompt 01 spec · Prompt 02 design system · Prompt 03 application shell · **Prompt 04 Dashboard**
-- Prompt 04: `src/pages/DashboardPage.tsx` + `src/components/dashboard/*` — greeting, quick actions,
-  metric cards, Today's overview, money/target, sales pipeline, today's tasks, recent activity,
-  project flow. Binds to `getDashboardData()` in `src/data/sampleDashboard.ts` (typed view-models,
-  preview data) via `useAsyncData`.
-- ⬜ CRM/Leads (P05), Projects (P06), Finance/Analytics (P07), Tasks/AMC (P08) real pages
+- ✅ P01 spec · P02 design system · P03 shell · P04 Dashboard · **P05 CRM + Leads**
+- P04: `src/pages/DashboardPage.tsx` + `src/components/dashboard/*`, binds `getDashboardData()`.
+- P05: CRM module —
+  - Routes: `/crm` `/leads` `/leads/:id` `/clients` `/clients/:id` `/follow-ups`. "Clients" added to sidebar nav.
+  - **`src/services/crmStore.ts`** — in-memory store (leads/clients/followUps/activities) with
+    `useSyncExternalStore` via `src/hooks/useCrm.ts`. Every view stays in sync. Async-shaped for a
+    later real API. Seed data: `src/data/sampleCrm.ts`. Selectors: `src/services/crmSelectors.ts`.
+  - `src/components/crm/*` — LeadFormModal, ConvertLeadModal (lead→client→project entry point),
+    LeadKanban (native HTML5 DnD + per-card stage menu), ClientFormModal, ScheduleFollowUpModal,
+    RescheduleModal, badges.
+  - New shared primitives: `DataTable`, `SearchInput`, `InlineSelect`, `SegmentedControl`, `Tabs`,
+    `ActivityTimeline`, `Toolbar`, `ProgressBar`, `ViewAllLink`. `useSimulatedLoad` for skeletons.
+  - Lead stage badge tones locked per Prompt 05 §12 (in `StatusBadge.tsx`).
+- ⬜ Projects (P06), Finance/Analytics (P07), Tasks/AMC (P08) real pages
 - ⬜ Backend, database, authentication (P09+)

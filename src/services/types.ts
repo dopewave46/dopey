@@ -204,6 +204,16 @@ export interface Amc extends Timestamped {
   notes?: string;
 }
 
+export interface FollowUp {
+  id: ID;
+  parentType: "lead" | "client";
+  parentId: ID;
+  dueDate: ISODateString;
+  note: string;
+  status: "pending" | "done";
+  completedAt?: ISODateString;
+}
+
 export interface Activity {
   id: ID;
   type: string;

@@ -1,0 +1,126 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-6);
+}
+
+.groupTitle {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  font: var(--t-meta);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--slate);
+  margin-bottom: var(--s-3);
+}
+.groupTitle[data-tone="error"] {
+  color: var(--error);
+}
+.groupTitle[data-tone="warning"] {
+  color: var(--warning);
+}
+.groupCount {
+  font-weight: 700;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-pill);
+  min-width: 20px;
+  text-align: center;
+  padding: 0 6px;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.item:last-child {
+  border-bottom: 0;
+}
+
+.itemMain {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  background: transparent;
+  border: 0;
+  text-align: left;
+  cursor: pointer;
+  flex: 1;
+  min-width: 220px;
+  padding: 0;
+}
+
+.itemIcon {
+  width: 32px;
+  height: 32px;
+  flex: none;
+  border-radius: var(--r-control);
+  display: grid;
+  place-items: center;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  color: var(--slate);
+}
+.itemIcon[data-tone="error"] {
+  background: var(--error-bg);
+  border-color: var(--error-border);
+  color: var(--error);
+}
+.itemIcon[data-tone="warning"] {
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+  color: var(--warning);
+}
+
+.itemBody {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+.itemTitle {
+  font: var(--t-body);
+  font-weight: 600;
+}
+.itemMain:hover .itemTitle {
+  color: var(--crimson);
+}
+.itemNote {
+  font: var(--t-meta);
+  color: var(--slate);
+}
+.itemDue {
+  font: var(--t-meta);
+  color: var(--muted);
+  margin-top: 1px;
+}
+.itemDue[data-tone="error"] {
+  color: var(--error);
+  font-weight: 600;
+}
+
+.itemActions {
+  display: flex;
+  gap: var(--s-1);
+  flex: none;
+}
+
+@media (max-width: 520px) {
+  .itemActions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+}

@@ -36,14 +36,15 @@ export const PROJECT_STATUS_META: Record<string, { label: string; tone: BadgeTon
   on_hold: { label: "On Hold", tone: "error" },
 };
 
+// Tones locked by Prompt 05 §12.
 export const LEAD_STAGE_META: Record<string, { label: string; tone: BadgeTone }> = {
-  new: { label: "New", tone: "info" },
-  contacted: { label: "Contacted", tone: "progress" },
-  interested: { label: "Interested", tone: "progress" },
-  proposal: { label: "Proposal", tone: "warning" },
+  new: { label: "New", tone: "neutral" },
+  contacted: { label: "Contacted", tone: "info" },
+  interested: { label: "Interested", tone: "info" },
+  proposal: { label: "Proposal", tone: "info" },
   negotiation: { label: "Negotiation", tone: "warning" },
   won: { label: "Won", tone: "success" },
-  lost: { label: "Lost", tone: "error" },
+  lost: { label: "Lost", tone: "neutral" },
 };
 
 export const INVOICE_STATUS_META: Record<string, { label: string; tone: BadgeTone }> = {
@@ -53,6 +54,13 @@ export const INVOICE_STATUS_META: Record<string, { label: string; tone: BadgeTon
   paid: { label: "Paid", tone: "success" },
   overdue: { label: "Overdue", tone: "error" },
   cancelled: { label: "Cancelled", tone: "neutral" },
+};
+
+export const CLIENT_STATUS_META: Record<string, { label: string; tone: BadgeTone }> = {
+  active: { label: "Active", tone: "success" },
+  prospect: { label: "Prospect", tone: "info" },
+  inactive: { label: "Inactive", tone: "neutral" },
+  archived: { label: "Archived", tone: "neutral" },
 };
 
 export const TASK_STATUS_META: Record<string, { label: string; tone: BadgeTone }> = {

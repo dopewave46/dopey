@@ -4,6 +4,10 @@ import { RouteError } from "@/components/shell/RouteError";
 import { DashboardPage } from "@/pages/DashboardPage";
 import { CrmPage } from "@/pages/CrmPage";
 import { LeadsPage } from "@/pages/LeadsPage";
+import { LeadDetailPage } from "@/pages/LeadDetailPage";
+import { ClientsPage } from "@/pages/ClientsPage";
+import { ClientDetailPage } from "@/pages/ClientDetailPage";
+import { FollowUpsPage } from "@/pages/FollowUpsPage";
 import { ProjectsPage } from "@/pages/ProjectsPage";
 import { TasksPage } from "@/pages/TasksPage";
 import { FinancePage } from "@/pages/FinancePage";
@@ -23,6 +27,10 @@ export const router = createBrowserRouter([
       { path: "dashboard", element: <DashboardPage /> },
       { path: "crm", element: <CrmPage /> },
       { path: "leads", element: <LeadsPage /> },
+      { path: "leads/:id", element: <LeadDetailPage /> },
+      { path: "clients", element: <ClientsPage /> },
+      { path: "clients/:id", element: <ClientDetailPage /> },
+      { path: "follow-ups", element: <FollowUpsPage /> },
       { path: "projects", element: <ProjectsPage /> },
       { path: "tasks", element: <TasksPage /> },
       { path: "finance", element: <FinancePage /> },

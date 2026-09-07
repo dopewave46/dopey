@@ -3,6 +3,7 @@ import type { SVGProps } from "react";
 export type IconName =
   | "dashboard"
   | "crm"
+  | "building"
   | "leads"
   | "projects"
   | "tasks"
@@ -53,6 +54,12 @@ const PATHS: Record<IconName, JSX.Element> = {
       <circle cx="10" cy="8" r="3.2" />
       <path d="M20 18.5c0-2-1.3-3.7-3.2-4.4" />
       <path d="M15.2 5.2A3 3 0 0 1 17 11" />
+    </>
+  ),
+  building: (
+    <>
+      <rect x="5" y="3" width="14" height="18" rx="1.5" />
+      <path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2M10 21v-3h4v3" />
     </>
   ),
   leads: (
