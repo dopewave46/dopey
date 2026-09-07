@@ -1,0 +1,1216 @@
+<title>DopeOrca OS Design System</title>
+<meta name="description" content="The locked visual language for DopeOrca OS — design tokens and component style guide.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap">
+<style>
+  /* ============================================================
+     DOPEORCA OS — DESIGN TOKENS  (Version 1 · light theme only)
+     ============================================================ */
+  :root {
+    /* — brand & neutrals — */
+    --crimson: #c1121f;
+    --crimson-hover: #a50f1a;
+    --crimson-active: #8b0c16;
+    --crimson-tint: #fdf2f3;      /* sidebar active bg, subtle highlight */
+    --crimson-tint-strong: #fbe9ea;
+    --charcoal: #171717;          /* primary text, headings */
+    --slate: #525252;             /* secondary text */
+    --muted: #737373;             /* timestamps, placeholder, low-priority */
+    --bg: #f6f6f6;                /* app background */
+    --surface: #ffffff;           /* cards, tables, forms, modals */
+    --surface-2: #fafafa;         /* subtle inset (search field, table head) */
+    --border: #e5e5e5;            /* hairline borders */
+    --border-strong: #d4d4d4;     /* input borders, dividers under pressure */
+
+    /* — semantic — */
+    --success: #15803d;  --success-bg: #e8f5ec;  --success-border: #bfe2c9;
+    --warning: #b45309;  --warning-bg: #fdf1e3;  --warning-border: #f2d9b6;
+    --error:   #b91c1c;  --error-bg:   #fceceb;  --error-border:   #f0c9c6;
+    --info:    #1d4ed8;  --info-bg:    #eaf0fe;  --info-border:    #cdddfb;
+
+    /* — type scale (Inter) — */
+    --font: "Inter", ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    --t-display: 700 40px/44px var(--font);
+    --t-page:    700 32px/38px var(--font);
+    --t-section: 600 20px/28px var(--font);
+    --t-card:    600 16px/24px var(--font);
+    --t-body:    400 14px/22px var(--font);
+    --t-body-lg: 400 16px/26px var(--font);
+    --t-meta:    400 12px/18px var(--font);
+
+    /* — spacing (base 4) — */
+    --s-1: 4px;  --s-2: 8px;  --s-3: 12px; --s-4: 16px; --s-5: 20px;
+    --s-6: 24px; --s-8: 32px; --s-10: 40px; --s-12: 48px; --s-16: 64px;
+
+    /* — radius — */
+    --r-tag: 8px;        /* badges, small tags */
+    --r-control: 10px;   /* buttons, inputs */
+    --r-card: 16px;      /* standard cards */
+    --r-card-lg: 20px;   /* metric cards, larger panels */
+    --r-container: 24px; /* full-bleed containers, modals */
+    --r-pill: 999px;
+
+    /* — shadow — */
+    --sh-xs: 0 1px 2px rgba(23,23,23,.04);
+    --sh-sm: 0 1px 3px rgba(23,23,23,.06), 0 1px 2px rgba(23,23,23,.04);
+    --sh-md: 0 4px 14px rgba(23,23,23,.06), 0 2px 6px rgba(23,23,23,.04);
+    --sh-lg: 0 20px 50px rgba(23,23,23,.16), 0 6px 16px rgba(23,23,23,.08);
+    --focus-ring: 0 0 0 3px rgba(193,18,31,.18);
+
+    /* — motion — */
+    --ease: cubic-bezier(.2,.7,.3,1);
+    --dur-fast: 120ms;
+    --dur: 180ms;
+  }
+
+  * { box-sizing: border-box; }
+  html { scroll-behavior: smooth; scroll-padding-top: 88px; }
+  @media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } *,*::before,*::after { animation-duration: .01ms !important; transition-duration: .01ms !important; } }
+
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--charcoal);
+    font: var(--t-body-lg);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  h1,h2,h3,h4 { margin: 0; text-wrap: balance; }
+  p { margin: 0; }
+  a { color: var(--crimson); }
+  code {
+    font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace;
+    font-size: .86em;
+    background: var(--surface-2);
+    border: 1px solid var(--border);
+    padding: 1px 5px;
+    border-radius: 6px;
+    color: var(--slate);
+  }
+  svg { display: block; }
+
+  /* ---------- doc chrome ---------- */
+  .topbar {
+    position: sticky; top: 0; z-index: 50;
+    display: flex; align-items: center; justify-content: space-between; gap: var(--s-4);
+    height: 60px; padding: 0 clamp(16px, 4vw, 40px);
+    background: rgba(246,246,246,.85);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid var(--border);
+  }
+  .brand { display: flex; align-items: center; gap: var(--s-3); font-weight: 700; letter-spacing: -.01em; }
+  .brand .glyph {
+    width: 28px; height: 28px; border-radius: 9px; display: grid; place-items: center;
+    background: var(--crimson); color: #fff; flex: none;
+  }
+  .brand .glyph svg { width: 16px; height: 16px; }
+  .brand small { font: var(--t-meta); font-weight: 600; color: var(--muted); text-transform: uppercase; letter-spacing: .1em; }
+  .lock-pill {
+    display: inline-flex; align-items: center; gap: var(--s-2);
+    font: var(--t-meta); font-weight: 600; text-transform: uppercase; letter-spacing: .08em;
+    color: var(--crimson); background: var(--crimson-tint); border: 1px solid var(--crimson-tint-strong);
+    padding: 6px 10px; border-radius: var(--r-pill);
+  }
+
+  .layout { display: grid; grid-template-columns: 244px minmax(0,1fr); gap: clamp(24px, 5vw, 72px); max-width: 1180px; margin: 0 auto; padding: var(--s-10) clamp(16px,4vw,40px) var(--s-16); }
+  .toc { position: sticky; top: 92px; align-self: start; max-height: calc(100vh - 120px); overflow-y: auto; font: var(--t-body); }
+  .toc h2 { font: var(--t-meta); font-weight: 700; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin-bottom: var(--s-3); }
+  .toc ol { list-style: none; margin: 0 0 var(--s-6); padding: 0; counter-reset: toc; display: flex; flex-direction: column; gap: 2px; }
+  .toc a { display: flex; gap: var(--s-2); align-items: baseline; text-decoration: none; color: var(--slate); padding: 6px 10px; border-radius: var(--r-tag); border-left: 2px solid transparent; }
+  .toc a::before { counter-increment: toc; content: counter(toc, decimal-leading-zero); font: var(--t-meta); color: var(--muted); font-variant-numeric: tabular-nums; }
+  .toc a:hover { background: var(--surface); color: var(--charcoal); }
+  .toc a.active { color: var(--crimson); border-left-color: var(--crimson); background: var(--crimson-tint); font-weight: 600; }
+
+  main { min-width: 0; }
+  .lede { margin-bottom: var(--s-12); }
+  .lede .kicker { font: var(--t-meta); font-weight: 700; text-transform: uppercase; letter-spacing: .14em; color: var(--crimson); margin-bottom: var(--s-4); }
+  .lede h1 { font: var(--t-page); font-size: clamp(30px, 5vw, 42px); line-height: 1.08; letter-spacing: -.02em; margin-bottom: var(--s-4); }
+  .lede p { font: var(--t-body-lg); color: var(--slate); max-width: 60ch; }
+  .lede p + p { margin-top: var(--s-3); }
+
+  section.block { padding-top: var(--s-12); margin-top: var(--s-12); border-top: 1px solid var(--border); scroll-margin-top: 88px; }
+  section.block:first-of-type { border-top: 0; margin-top: 0; }
+  .block > header { margin-bottom: var(--s-6); }
+  .block .num { font: var(--t-meta); font-weight: 700; letter-spacing: .12em; color: var(--crimson); text-transform: uppercase; }
+  .block h2 { font: var(--t-section); font-size: 24px; letter-spacing: -.01em; margin: var(--s-2) 0 var(--s-3); }
+  .block > header p { font: var(--t-body-lg); color: var(--slate); max-width: 62ch; }
+  h3.sub { font: var(--t-card); margin: var(--s-8) 0 var(--s-4); }
+  h3.sub:first-of-type { margin-top: 0; }
+
+  .note { font: var(--t-body); color: var(--slate); max-width: 62ch; margin: var(--s-3) 0; }
+  .rule-list { margin: var(--s-3) 0 0; padding-left: 18px; font: var(--t-body); color: var(--slate); }
+  .rule-list li { margin-bottom: 6px; }
+  .rule-list li::marker { color: var(--muted); }
+
+  /* generic demo canvas */
+  .canvas {
+    background: var(--bg);
+    border: 1px solid var(--border);
+    border-radius: var(--r-card-lg);
+    padding: var(--s-8);
+    margin: var(--s-4) 0;
+    display: flex; flex-wrap: wrap; gap: var(--s-4);
+    align-items: flex-start;
+  }
+  .canvas.tight { padding: var(--s-5); }
+  .canvas.col { flex-direction: column; }
+  .caption { font: var(--t-meta); color: var(--muted); margin-top: var(--s-2); }
+
+  /* ---------- tokens: color ---------- */
+  .swatches { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px,1fr)); gap: var(--s-3); margin-top: var(--s-4); }
+  .swatch { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); overflow: hidden; box-shadow: var(--sh-xs); }
+  .swatch .chip { height: 68px; border-bottom: 1px solid var(--border); }
+  .swatch .body { padding: var(--s-3); }
+  .swatch .name { font: var(--t-body); font-weight: 600; }
+  .swatch .hex { font: var(--t-meta); color: var(--muted); font-variant-numeric: tabular-nums; text-transform: uppercase; letter-spacing: .04em; }
+  .swatch .use { font: var(--t-meta); color: var(--slate); margin-top: 6px; }
+
+  /* ---------- tokens: type ---------- */
+  .type-row { display: grid; grid-template-columns: 150px 1fr; gap: var(--s-5); align-items: baseline; padding: var(--s-4) 0; border-bottom: 1px solid var(--border); }
+  .type-row:last-child { border-bottom: 0; }
+  .type-row .meta { font: var(--t-meta); color: var(--muted); }
+  .type-row .meta b { display: block; color: var(--slate); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; margin-bottom: 3px; }
+  .sp-display { font: var(--t-display); font-variant-numeric: tabular-nums; letter-spacing: -.02em; }
+  .sp-page { font: var(--t-page); letter-spacing: -.02em; }
+  .sp-section { font: var(--t-section); }
+  .sp-card { font: var(--t-card); }
+  .sp-body { font: var(--t-body-lg); }
+  .sp-label { font: var(--t-meta); font-weight: 600; text-transform: uppercase; letter-spacing: .06em; color: var(--slate); }
+  .sp-meta { font: var(--t-meta); color: var(--muted); }
+
+  /* ---------- tokens: spacing / radius / shadow ---------- */
+  .scale-grid { display: flex; flex-wrap: wrap; gap: var(--s-5); margin-top: var(--s-4); }
+  .sp-item { display: flex; flex-direction: column; gap: 6px; align-items: flex-start; }
+  .sp-item .bar { background: var(--crimson); height: 16px; border-radius: 3px; }
+  .sp-item .lbl { font: var(--t-meta); color: var(--slate); font-variant-numeric: tabular-nums; }
+  .rad-item, .sh-item { display: flex; flex-direction: column; gap: 8px; align-items: center; }
+  .rad-box { width: 96px; height: 72px; background: var(--surface); border: 1px solid var(--border-strong); }
+  .sh-box { width: 120px; height: 72px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); }
+  .rad-item .lbl, .sh-item .lbl { font: var(--t-meta); color: var(--slate); text-align: center; }
+
+  /* ---------- components: buttons ---------- */
+  .btn {
+    --btn-bg: var(--crimson); --btn-fg: #fff; --btn-bd: transparent;
+    display: inline-flex; align-items: center; gap: var(--s-2);
+    font: var(--t-body); font-weight: 600;
+    padding: 9px 16px; border-radius: var(--r-control);
+    background: var(--btn-bg); color: var(--btn-fg);
+    border: 1px solid var(--btn-bd); cursor: pointer;
+    transition: background var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease), transform var(--dur-fast) var(--ease);
+  }
+  .btn svg { width: 16px; height: 16px; }
+  .btn:hover { background: var(--crimson-hover); }
+  .btn:active { background: var(--crimson-active); transform: translateY(1px); }
+  .btn:focus-visible { outline: none; box-shadow: var(--focus-ring); }
+  .btn[disabled] { opacity: .5; cursor: not-allowed; }
+  .btn.secondary { --btn-bg: var(--surface); --btn-fg: var(--charcoal); --btn-bd: var(--border-strong); box-shadow: var(--sh-xs); }
+  .btn.secondary:hover { background: var(--surface-2); border-color: var(--muted); }
+  .btn.secondary:active { background: var(--border); }
+  .btn.tertiary { --btn-bg: transparent; --btn-fg: var(--crimson); padding: 9px 8px; }
+  .btn.tertiary:hover { background: var(--crimson-tint); }
+  .btn.danger { --btn-bg: var(--surface); --btn-fg: var(--error); --btn-bd: var(--error-border); box-shadow: var(--sh-xs); }
+  .btn.danger:hover { background: var(--error-bg); border-color: var(--error); }
+  .btn.sm { padding: 6px 12px; font-size: 13px; }
+
+  .state-table { width: 100%; border-collapse: collapse; margin-top: var(--s-3); font: var(--t-body); }
+  .state-table th, .state-table td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+  .state-table thead th { font: var(--t-meta); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--surface-2); }
+  .state-table tbody tr:last-child td, .state-table tbody tr:last-child td { border-bottom: 0; }
+
+  /* ---------- components: forms ---------- */
+  .field { display: flex; flex-direction: column; gap: 6px; max-width: 340px; }
+  .field label { font: var(--t-body); font-weight: 600; color: var(--charcoal); }
+  .field .hint { font: var(--t-meta); color: var(--muted); }
+  .field .err { font: var(--t-meta); color: var(--error); display: flex; gap: 4px; align-items: center; }
+  .field .err svg { width: 13px; height: 13px; }
+  .input, .select, .textarea {
+    font: var(--t-body); color: var(--charcoal);
+    background: var(--surface); border: 1px solid var(--border-strong);
+    border-radius: var(--r-control); padding: 10px 12px; width: 100%;
+    transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+  }
+  .input::placeholder, .textarea::placeholder { color: var(--muted); }
+  .input:focus, .select:focus, .textarea:focus { outline: none; border-color: var(--crimson); box-shadow: var(--focus-ring); }
+  .field.invalid .input { border-color: var(--error); }
+  .field.invalid .input:focus { box-shadow: 0 0 0 3px rgba(185,28,28,.16); }
+  .textarea { min-height: 84px; resize: vertical; }
+
+  /* ---------- components: cards ---------- */
+  .card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-card); padding: var(--s-5);
+    box-shadow: var(--sh-sm);
+  }
+  .card.interactive { transition: box-shadow var(--dur) var(--ease), border-color var(--dur) var(--ease), transform var(--dur) var(--ease); cursor: pointer; }
+  .card.interactive:hover { box-shadow: var(--sh-md); border-color: var(--border-strong); transform: translateY(-2px); }
+  .card h4 { font: var(--t-card); margin-bottom: var(--s-2); }
+  .card .card-sub { font: var(--t-body); color: var(--slate); }
+
+  .metric-card {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-card-lg); padding: var(--s-5);
+    box-shadow: var(--sh-sm); min-width: 220px; flex: 1;
+    display: flex; flex-direction: column; gap: var(--s-3);
+  }
+  .metric-card .m-label { font: var(--t-meta); font-weight: 600; text-transform: uppercase; letter-spacing: .07em; color: var(--slate); display: flex; align-items: center; gap: 6px; }
+  .metric-card .m-label svg { width: 15px; height: 15px; color: var(--muted); }
+  .metric-card .m-value { font: var(--t-display); font-size: 34px; letter-spacing: -.02em; font-variant-numeric: tabular-nums; }
+  .metric-card .m-foot { display: flex; align-items: center; justify-content: space-between; gap: var(--s-3); }
+  .trend { display: inline-flex; align-items: center; gap: 4px; font: var(--t-meta); font-weight: 600; padding: 3px 8px; border-radius: var(--r-tag); }
+  .trend svg { width: 13px; height: 13px; }
+  .trend.up { color: var(--success); background: var(--success-bg); }
+  .trend.down { color: var(--error); background: var(--error-bg); }
+  .trend.flat { color: var(--slate); background: var(--surface-2); }
+
+  /* ---------- components: table ---------- */
+  .tbl-wrap { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); overflow: hidden; box-shadow: var(--sh-sm); }
+  .tbl-scroll { overflow-x: auto; }
+  table.data { width: 100%; border-collapse: collapse; font: var(--t-body); min-width: 560px; }
+  table.data th, table.data td { text-align: left; padding: 12px 16px; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  table.data thead th { font: var(--t-meta); font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); background: var(--surface-2); cursor: pointer; user-select: none; }
+  table.data thead th .caret { color: var(--muted); }
+  table.data tbody tr { transition: background var(--dur-fast) var(--ease); }
+  table.data tbody tr:hover { background: var(--crimson-tint); }
+  table.data tbody tr:last-child td { border-bottom: 0; }
+  table.data td.num { text-align: right; font-variant-numeric: tabular-nums; }
+  .tbl-toolbar { display: flex; align-items: center; gap: var(--s-3); padding: var(--s-3) var(--s-4); border-bottom: 1px solid var(--border); flex-wrap: wrap; }
+
+  /* ---------- components: badges ---------- */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px;
+    font: var(--t-meta); font-weight: 600; letter-spacing: .03em;
+    padding: 3px 9px; border-radius: var(--r-tag);
+    border: 1px solid transparent; white-space: nowrap;
+  }
+  .badge::before { content: ""; width: 6px; height: 6px; border-radius: var(--r-pill); background: currentColor; flex: none; }
+  .badge.neutral { color: var(--slate); background: var(--surface-2); border-color: var(--border); }
+  .badge.info    { color: var(--info); background: var(--info-bg); border-color: var(--info-border); }
+  .badge.progress{ color: var(--crimson); background: var(--crimson-tint); border-color: var(--crimson-tint-strong); }
+  .badge.success { color: var(--success); background: var(--success-bg); border-color: var(--success-border); }
+  .badge.warning { color: var(--warning); background: var(--warning-bg); border-color: var(--warning-border); }
+  .badge.error   { color: var(--error); background: var(--error-bg); border-color: var(--error-border); }
+
+  /* ---------- app shell demo ---------- */
+  .shell-demo {
+    display: grid; grid-template-columns: 200px 1fr;
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--r-container); overflow: hidden; box-shadow: var(--sh-md);
+    min-height: 420px;
+  }
+  .sd-side { background: var(--surface); border-right: 1px solid var(--border); padding: var(--s-4); display: flex; flex-direction: column; gap: var(--s-1); }
+  .sd-brand { display: flex; align-items: center; gap: var(--s-2); font-weight: 700; padding: var(--s-2) var(--s-2) var(--s-4); }
+  .sd-brand .glyph { width: 24px; height: 24px; border-radius: 8px; background: var(--crimson); color: #fff; display: grid; place-items: center; }
+  .sd-brand .glyph svg { width: 13px; height: 13px; }
+  .nav-item { display: flex; align-items: center; gap: var(--s-3); padding: 8px 10px; border-radius: var(--r-control); color: var(--slate); font: var(--t-body); font-weight: 500; cursor: pointer; transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease); }
+  .nav-item svg { width: 18px; height: 18px; flex: none; }
+  .nav-item:hover { background: var(--surface-2); color: var(--charcoal); }
+  .nav-item.active { background: var(--crimson-tint); color: var(--crimson); font-weight: 600; }
+  .nav-group { font: var(--t-meta); font-weight: 700; text-transform: uppercase; letter-spacing: .1em; color: var(--muted); padding: var(--s-4) 10px var(--s-2); }
+  .sd-main { display: flex; flex-direction: column; min-width: 0; }
+  .sd-head { display: flex; align-items: center; gap: var(--s-4); padding: var(--s-3) var(--s-5); border-bottom: 1px solid var(--border); }
+  .sd-head .ctx { font: var(--t-card); }
+  .sd-search { flex: 1; max-width: 320px; display: flex; align-items: center; gap: var(--s-2); background: var(--surface-2); border: 1px solid var(--border); border-radius: var(--r-control); padding: 7px 12px; color: var(--muted); font: var(--t-body); }
+  .sd-search svg { width: 15px; height: 15px; }
+  .sd-head .spacer { flex: 1; }
+  .clock { text-align: right; font: var(--t-meta); color: var(--slate); font-variant-numeric: tabular-nums; }
+  .clock b { display: block; font: var(--t-body); font-weight: 600; color: var(--charcoal); }
+  .icon-btn { width: 34px; height: 34px; display: grid; place-items: center; border-radius: var(--r-control); border: 1px solid transparent; background: transparent; color: var(--slate); cursor: pointer; position: relative; }
+  .icon-btn:hover { background: var(--surface-2); color: var(--charcoal); }
+  .icon-btn svg { width: 18px; height: 18px; }
+  .icon-btn .dot { position: absolute; top: 6px; right: 7px; width: 7px; height: 7px; border-radius: var(--r-pill); background: var(--crimson); border: 2px solid var(--surface); }
+  .avatar { width: 32px; height: 32px; border-radius: var(--r-pill); background: var(--crimson-tint); color: var(--crimson); display: grid; place-items: center; font: var(--t-body); font-weight: 700; border: 1px solid var(--crimson-tint-strong); }
+  .sd-body { padding: var(--s-5); background: var(--bg); flex: 1; display: grid; grid-template-columns: repeat(3, 1fr); gap: var(--s-4); align-content: start; }
+
+  /* ---------- progress ---------- */
+  .progress { display: flex; flex-direction: column; gap: 6px; max-width: 380px; }
+  .progress .prow { display: flex; justify-content: space-between; font: var(--t-body); }
+  .progress .prow .pct { font-variant-numeric: tabular-nums; font-weight: 600; }
+  .track { height: 8px; background: var(--border); border-radius: var(--r-pill); overflow: hidden; }
+  .track > i { display: block; height: 100%; background: var(--crimson); border-radius: var(--r-pill); transition: width var(--dur) var(--ease); }
+  .stage-strip { display: flex; gap: 4px; margin-top: var(--s-2); }
+  .stage-strip span { flex: 1; height: 6px; border-radius: var(--r-pill); background: var(--border); }
+  .stage-strip span.done { background: var(--crimson); }
+  .stage-strip span.partial { background: linear-gradient(90deg, var(--crimson) 60%, var(--border) 60%); }
+
+  /* ---------- timeline ---------- */
+  .timeline { display: flex; flex-direction: column; }
+  .tl-item { display: grid; grid-template-columns: 28px 1fr; gap: var(--s-3); padding: var(--s-3) 0; position: relative; }
+  .tl-item:not(:last-child)::before { content: ""; position: absolute; left: 13px; top: 34px; bottom: -6px; width: 1px; background: var(--border); }
+  .tl-dot { width: 28px; height: 28px; border-radius: var(--r-pill); display: grid; place-items: center; background: var(--surface-2); border: 1px solid var(--border); color: var(--slate); }
+  .tl-dot svg { width: 14px; height: 14px; }
+  .tl-dot.crimson { background: var(--crimson-tint); border-color: var(--crimson-tint-strong); color: var(--crimson); }
+  .tl-dot.success { background: var(--success-bg); border-color: var(--success-border); color: var(--success); }
+  .tl-body .tl-title { font: var(--t-body); }
+  .tl-body .tl-title b { font-weight: 600; }
+  .tl-body .tl-meta { font: var(--t-meta); color: var(--muted); margin-top: 2px; }
+
+  /* ---------- states ---------- */
+  .state-demos { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px,1fr)); gap: var(--s-4); }
+  .empty-state { text-align: center; padding: var(--s-8) var(--s-5); background: var(--surface); border: 1px dashed var(--border-strong); border-radius: var(--r-card); }
+  .empty-state .ic { width: 44px; height: 44px; border-radius: var(--r-card); background: var(--crimson-tint); color: var(--crimson); display: grid; place-items: center; margin: 0 auto var(--s-3); }
+  .empty-state .ic svg { width: 22px; height: 22px; }
+  .empty-state h4 { font: var(--t-card); margin-bottom: 4px; }
+  .empty-state p { font: var(--t-body); color: var(--slate); margin-bottom: var(--s-4); }
+  .skeleton { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: var(--s-5); box-shadow: var(--sh-sm); }
+  .sk-line { height: 12px; border-radius: 6px; background: linear-gradient(90deg, #ededed 25%, #f5f5f5 37%, #ededed 63%); background-size: 400% 100%; animation: sk 1.4s ease infinite; }
+  @keyframes sk { 0% { background-position: 100% 0; } 100% { background-position: -100% 0; } }
+  .error-state { text-align: center; padding: var(--s-8) var(--s-5); background: var(--surface); border: 1px solid var(--error-border); border-radius: var(--r-card); }
+  .error-state .ic { width: 44px; height: 44px; border-radius: var(--r-card); background: var(--error-bg); color: var(--error); display: grid; place-items: center; margin: 0 auto var(--s-3); }
+  .error-state .ic svg { width: 22px; height: 22px; }
+  .error-state h4 { font: var(--t-card); margin-bottom: 4px; }
+  .error-state p { font: var(--t-body); color: var(--slate); margin-bottom: var(--s-4); }
+
+  /* ---------- notifications ---------- */
+  .notif { display: grid; grid-template-columns: 34px 1fr auto; gap: var(--s-3); padding: var(--s-3); border: 1px solid var(--border); border-radius: var(--r-card); background: var(--surface); box-shadow: var(--sh-xs); max-width: 460px; }
+  .notif + .notif { margin-top: var(--s-2); }
+  .notif .n-ic { width: 34px; height: 34px; border-radius: var(--r-control); display: grid; place-items: center; }
+  .notif .n-ic svg { width: 16px; height: 16px; }
+  .notif .n-ic.error { background: var(--error-bg); color: var(--error); }
+  .notif .n-ic.success { background: var(--success-bg); color: var(--success); }
+  .notif .n-ic.warning { background: var(--warning-bg); color: var(--warning); }
+  .notif .n-title { font: var(--t-body); font-weight: 600; }
+  .notif .n-sub { font: var(--t-meta); color: var(--slate); margin-top: 2px; }
+  .notif .n-time { font: var(--t-meta); color: var(--muted); white-space: nowrap; }
+
+  /* ---------- modal / drawer demo ---------- */
+  .overlay-demo { position: relative; background: var(--bg); border: 1px solid var(--border); border-radius: var(--r-card-lg); height: 320px; overflow: hidden; }
+  .overlay-demo .scrim { position: absolute; inset: 0; background: rgba(23,23,23,.28); backdrop-filter: blur(1px); }
+  .modal {
+    position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%);
+    width: min(380px, 88%); background: var(--surface); border-radius: var(--r-container);
+    box-shadow: var(--sh-lg); border: 1px solid var(--border); overflow: hidden;
+  }
+  .modal header, .drawer header { display: flex; align-items: center; justify-content: space-between; padding: var(--s-4) var(--s-5); border-bottom: 1px solid var(--border); }
+  .modal header h4, .drawer header h4 { font: var(--t-card); }
+  .modal .m-body, .drawer .d-body { padding: var(--s-5); display: flex; flex-direction: column; gap: var(--s-4); }
+  .modal footer, .drawer footer { display: flex; justify-content: flex-end; gap: var(--s-2); padding: var(--s-4) var(--s-5); border-top: 1px solid var(--border); background: var(--surface-2); }
+  .drawer {
+    position: absolute; top: 0; right: 0; bottom: 0; width: min(340px, 82%);
+    background: var(--surface); box-shadow: var(--sh-lg); border-left: 1px solid var(--border);
+    display: flex; flex-direction: column;
+  }
+  .drawer .d-body { overflow-y: auto; flex: 1; }
+  .kv { display: grid; grid-template-columns: 96px 1fr; gap: 6px var(--s-3); font: var(--t-body); }
+  .kv dt { color: var(--muted); }
+  .kv dd { margin: 0; font-weight: 500; }
+
+  /* ---------- charts ---------- */
+  .chart-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px,1fr)); gap: var(--s-4); }
+  .chart-card { background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: var(--s-5); box-shadow: var(--sh-sm); }
+  .chart-card h4 { font: var(--t-card); margin-bottom: 2px; }
+  .chart-card .c-val { font: var(--t-display); font-size: 28px; font-variant-numeric: tabular-nums; letter-spacing: -.02em; margin: 4px 0 var(--s-4); }
+  .chart-card .c-legend { display: flex; gap: var(--s-4); font: var(--t-meta); color: var(--slate); margin-top: var(--s-3); flex-wrap: wrap; }
+  .chart-card .c-legend i { width: 9px; height: 9px; border-radius: 3px; display: inline-block; margin-right: 5px; vertical-align: middle; }
+
+  footer.doc-foot { max-width: 1180px; margin: 0 auto; padding: var(--s-8) clamp(16px,4vw,40px) var(--s-16); border-top: 1px solid var(--border); font: var(--t-meta); color: var(--muted); }
+
+  /* ---------- responsive ---------- */
+  @media (max-width: 940px) {
+    .layout { grid-template-columns: 1fr; }
+    .toc { position: static; max-height: none; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-card); padding: var(--s-4); }
+    .shell-demo { grid-template-columns: 1fr; }
+    .sd-side { flex-direction: row; overflow-x: auto; border-right: 0; border-bottom: 1px solid var(--border); }
+    .sd-body { grid-template-columns: 1fr; }
+    .nav-group { display: none; }
+  }
+  @media (max-width: 560px) {
+    .sd-head { flex-wrap: wrap; }
+    .type-row { grid-template-columns: 1fr; gap: var(--s-2); }
+  }
+</style>
+
+<!-- ================= ICON SPRITE ================= -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <g id="i-grid"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></g>
+    <g id="i-users"><path d="M16 19c0-2.8-2.7-5-6-5s-6 2.2-6 5"/><circle cx="10" cy="8" r="3.2"/><path d="M20 18.5c0-2-1.3-3.7-3.2-4.4"/><path d="M15.2 5.2A3 3 0 0 1 17 11"/></g>
+    <g id="i-userplus"><path d="M14 19c0-2.8-2.5-5-5.5-5S3 16.2 3 19"/><circle cx="8.5" cy="8" r="3.2"/><path d="M18 8v6M15 11h6"/></g>
+    <g id="i-folder"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h6a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></g>
+    <g id="i-building"><rect x="5" y="3" width="14" height="18" rx="1.5"/><path d="M9 7h2M13 7h2M9 11h2M13 11h2M9 15h2M13 15h2M10 21v-3h4v3"/></g>
+    <g id="i-chart"><path d="M4 20V4M4 20h16"/><rect x="7" y="12" width="3" height="5"/><rect x="12.5" y="8" width="3" height="9"/><rect x="18" y="14" width="3" height="3"/></g>
+    <g id="i-wallet"><path d="M4 7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1"/><path d="M4 7v10a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1v-3"/><path d="M20 11h-4a2 2 0 0 0 0 4h4a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1z"/></g>
+    <g id="i-check-sq"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M9 12l2 2 4-4"/></g>
+    <g id="i-wrench"><path d="M14.5 5.5a4 4 0 0 0-5 5L4 16l4 4 5.5-5.5a4 4 0 0 0 5-5l-2.8 2.8-2.2-.6-.6-2.2z"/></g>
+    <g id="i-gear"><circle cx="12" cy="12" r="3"/><path d="M12 3v2M12 19v2M5 12H3M21 12h-2M6.3 6.3 4.9 4.9M19.1 19.1l-1.4-1.4M6.3 17.7l-1.4 1.4M19.1 4.9l-1.4 1.4"/></g>
+    <g id="i-bell"><path d="M6 9a6 6 0 0 1 12 0c0 5 2 6 2 6H4s2-1 2-6z"/><path d="M10 20a2 2 0 0 0 4 0"/></g>
+    <g id="i-search"><circle cx="11" cy="11" r="6"/><path d="m20 20-3.5-3.5"/></g>
+    <g id="i-plus"><path d="M12 5v14M5 12h14"/></g>
+    <g id="i-arrow-up"><path d="M12 19V5M6 11l6-6 6 6"/></g>
+    <g id="i-arrow-down"><path d="M12 5v14M6 13l6 6 6-6"/></g>
+    <g id="i-clock"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></g>
+    <g id="i-check"><path d="M5 12l4.5 4.5L19 7"/></g>
+    <g id="i-alert"><path d="M12 4 2.5 20h19z"/><path d="M12 10v4M12 17h.01"/></g>
+    <g id="i-x"><path d="M6 6l12 12M18 6 6 18"/></g>
+    <g id="i-inbox"><path d="M3 13h5l1.5 3h5L21 13M3 13l3.5-8h11L21 13v6a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1z"/></g>
+    <g id="i-orca"><path d="M4 6c4 0 6 3 8 3s3-2 7-2c-1 4-4 9-9 9-4 0-6-3-6-6 0-2 0-3 0-4z"/><circle cx="9" cy="9" r="1" fill="currentColor" stroke="none"/></g>
+    <g id="i-rupee"><path d="M7 5h10M7 9h10M15 5c0 4-3 5-6 5l7 9M7 9h4"/></g>
+    <g id="i-caret"><path d="M8 10l4 4 4-4"/></g>
+  </defs>
+</svg>
+
+<div class="topbar">
+  <span class="brand"><span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><use href="#i-orca"/></svg></span>DopeOrca&nbsp;OS <small>Design System</small></span>
+  <span class="lock-pill"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><use href="#i-check"/></svg> Locked · v1</span>
+</div>
+
+<div class="layout">
+  <nav class="toc" aria-label="Contents">
+    <h2>Design System</h2>
+    <ol id="tocList">
+      <li><a href="#principles">Principles &amp; usage</a></li>
+      <li><a href="#color">Colour tokens</a></li>
+      <li><a href="#type">Typography</a></li>
+      <li><a href="#spacing">Spacing scale</a></li>
+      <li><a href="#radius">Radius scale</a></li>
+      <li><a href="#shadow">Shadow scale</a></li>
+      <li><a href="#layout">Application layout</a></li>
+      <li><a href="#sidebar">Sidebar &amp; icons</a></li>
+      <li><a href="#header">Header · clock · search</a></li>
+      <li><a href="#buttons">Buttons</a></li>
+      <li><a href="#forms">Inputs &amp; forms</a></li>
+      <li><a href="#cards">Cards &amp; metric cards</a></li>
+      <li><a href="#tables">Data tables</a></li>
+      <li><a href="#badges">Status badges</a></li>
+      <li><a href="#progress">Progress indicators</a></li>
+      <li><a href="#timeline">Activity timeline</a></li>
+      <li><a href="#charts">Charts</a></li>
+      <li><a href="#modals">Modals &amp; drawers</a></li>
+      <li><a href="#states">Empty · loading · error</a></li>
+      <li><a href="#notifications">Notifications</a></li>
+      <li><a href="#motion">Motion &amp; hover</a></li>
+      <li><a href="#a11y">Accessibility</a></li>
+      <li><a href="#responsive">Responsive rules</a></li>
+      <li><a href="#governance">Consistency &amp; governance</a></li>
+    </ol>
+  </nav>
+
+  <main>
+    <div class="lede">
+      <div class="kicker">DopeOrca OS · Version 1 · Locked visual language</div>
+      <h1>DopeOrca OS Design System</h1>
+      <p>The permanent visual foundation for DopeOrca OS — the internal operating system for DopeOrca Technologies, Mumbai. This document locks the design tokens and component style guide that every later screen must follow exactly.</p>
+      <p>Premium, minimal, technical, confident. Crimson creates focus; white and neutral surfaces carry the interface. Light theme only in Version 1 — no dark mode, no theme toggle, no dark tokens. No page may introduce a colour, font, spacing value, radius, shadow, or component pattern outside what is defined here.</p>
+    </div>
+
+    <!-- 01 PRINCIPLES -->
+    <section class="block" id="principles">
+      <header>
+        <div class="num">01 — Principles &amp; usage</div>
+        <h2>How this system is meant to feel</h2>
+        <p>The interface should read as a serious technology product — in the spirit of Linear, Stripe, Notion, and Vercel — without copying any of their branding or layouts. It is an original DopeOrca identity.</p>
+      </header>
+      <div class="canvas col">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--s-6);width:100%">
+          <div>
+            <h3 class="sub">Should feel</h3>
+            <ul class="rule-list">
+              <li>Premium, modern, minimal, intelligent</li>
+              <li>Professional, clean, confident, technical</li>
+              <li>Organised, fast, immediately understandable</li>
+            </ul>
+          </div>
+          <div>
+            <h3 class="sub">Must never feel</h3>
+            <ul class="rule-list">
+              <li>Cheap, generic, over-designed, cartoonish</li>
+              <li>Cluttered or excessively colourful</li>
+              <li>Like an admin template, an accounting app, or an old enterprise dashboard</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+      <h3 class="sub">Colour balance target</h3>
+      <p class="note">White / neutral surfaces are dominant. Charcoal carries typography. Crimson is reserved for brand and important actions. Grey supports. Crimson should account for only a small fraction of any screen — it creates focus, it does not fill the interface.</p>
+    </section>
+
+    <!-- 02 COLOUR -->
+    <section class="block" id="color">
+      <header>
+        <div class="num">02 — Colour tokens</div>
+        <h2>Every colour has a functional purpose</h2>
+        <p>No screen introduces a colour outside this set. Semantic colours are restrained — never neon.</p>
+      </header>
+
+      <h3 class="sub">Brand &amp; neutrals</h3>
+      <div class="swatches">
+        <div class="swatch"><div class="chip" style="background:#c1121f"></div><div class="body"><div class="name">Crimson</div><div class="hex">#C1121F · --crimson</div><div class="use">Primary buttons, active nav, key highlights, brand.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#a50f1a"></div><div class="body"><div class="name">Crimson Hover</div><div class="hex">#A50F1A · --crimson-hover</div><div class="use">Primary button hover.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#8b0c16"></div><div class="body"><div class="name">Crimson Active</div><div class="hex">#8B0C16 · --crimson-active</div><div class="use">Primary button pressed.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#fdf2f3;border-bottom:1px solid #e5e5e5"></div><div class="body"><div class="name">Crimson Tint</div><div class="hex">#FDF2F3 · --crimson-tint</div><div class="use">Active nav background, row hover, subtle highlight.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#171717"></div><div class="body"><div class="name">Charcoal</div><div class="hex">#171717 · --charcoal</div><div class="use">Primary text, headings, important labels.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#525252"></div><div class="body"><div class="name">Slate</div><div class="hex">#525252 · --slate</div><div class="use">Secondary text, descriptions, supporting info.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#737373"></div><div class="body"><div class="name">Muted</div><div class="hex">#737373 · --muted</div><div class="use">Timestamps, placeholders, low-priority metadata.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#f6f6f6;border-bottom:1px solid #e5e5e5"></div><div class="body"><div class="name">App Background</div><div class="hex">#F6F6F6 · --bg</div><div class="use">Main application background.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#ffffff;border-bottom:1px solid #e5e5e5"></div><div class="body"><div class="name">Surface</div><div class="hex">#FFFFFF · --surface</div><div class="use">Cards, tables, forms, modals, content surfaces.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#fafafa;border-bottom:1px solid #e5e5e5"></div><div class="body"><div class="name">Surface Inset</div><div class="hex">#FAFAFA · --surface-2</div><div class="use">Search field, table headers, footers.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#e5e5e5"></div><div class="body"><div class="name">Border</div><div class="hex">#E5E5E5 · --border</div><div class="use">Hairline borders and separators.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#d4d4d4"></div><div class="body"><div class="name">Border Strong</div><div class="hex">#D4D4D4 · --border-strong</div><div class="use">Input borders, dividers under emphasis.</div></div></div>
+      </div>
+
+      <h3 class="sub">Semantic</h3>
+      <div class="swatches">
+        <div class="swatch"><div class="chip" style="background:#15803d"></div><div class="body"><div class="name">Success</div><div class="hex">#15803D · --success</div><div class="use">Paid, completed, positive trend. Bg #E8F5EC.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#b45309"></div><div class="body"><div class="name">Warning</div><div class="hex">#B45309 · --warning</div><div class="use">Pending, renewal approaching, review. Bg #FDF1E3.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#b91c1c"></div><div class="body"><div class="name">Error</div><div class="hex">#B91C1C · --error</div><div class="use">Overdue, failed, destructive. Bg #FCECEB.</div></div></div>
+        <div class="swatch"><div class="chip" style="background:#1d4ed8"></div><div class="body"><div class="name">Info</div><div class="hex">#1D4ED8 · --info</div><div class="use">Neutral informational states only (e.g. "In review"). Bg #EAF0FE.</div></div></div>
+      </div>
+      <p class="note">Crimson is a brand colour, not a status colour. "Overdue" and error states use <code>--error</code> (a darker red), never <code>--crimson</code>, so brand and alarm never blur together.</p>
+    </section>
+
+    <!-- 03 TYPE -->
+    <section class="block" id="type">
+      <header>
+        <div class="num">03 — Typography</div>
+        <h2>Inter, one family, consistent hierarchy</h2>
+        <p>Inter across the entire application. Weights limited to 400 / 500 / 600 / 700. Large financial numbers use tabular figures and tight tracking.</p>
+      </header>
+      <div class="canvas col tight">
+        <div style="width:100%">
+          <div class="type-row"><div class="meta"><b>Display / Hero number</b>700 · 40/44 · tabular</div><div class="sp-display">₹4,25,000</div></div>
+          <div class="type-row"><div class="meta"><b>Page title</b>700 · 32/38 · -2% tracking</div><div class="sp-page">Dashboard</div></div>
+          <div class="type-row"><div class="meta"><b>Section title</b>600 · 20/28</div><div class="sp-section">Recent Projects</div></div>
+          <div class="type-row"><div class="meta"><b>Card title</b>600 · 16/24</div><div class="sp-card">Active Projects</div></div>
+          <div class="type-row"><div class="meta"><b>Body</b>400 · 14–16 / 1.5</div><div class="sp-body">Ananya from Blue Fig Studio approved the homepage revision this morning.</div></div>
+          <div class="type-row"><div class="meta"><b>Label</b>600 · 12 · uppercase · 6% tracking</div><div class="sp-label">Estimated project value</div></div>
+          <div class="type-row"><div class="meta"><b>Metadata</b>400 · 12 · muted</div><div class="sp-meta">Updated 2 hours ago · Mumbai</div></div>
+        </div>
+      </div>
+      <p class="note">Dashboard metric numbers render 32–40px depending on available column width; the hierarchy stays fixed even when exact px values flex for responsive layouts.</p>
+    </section>
+
+    <!-- 04 SPACING -->
+    <section class="block" id="spacing">
+      <header>
+        <div class="num">04 — Spacing scale</div>
+        <h2>Base unit 4px</h2>
+        <p>Allowed values only: 4, 8, 12, 16, 20, 24, 32, 40, 48, 64. Margins and padding are never chosen arbitrarily. Cards use 20–24px internal padding; sections breathe with 32–48px gaps.</p>
+      </header>
+      <div class="canvas col tight">
+        <div class="scale-grid">
+          <div class="sp-item"><span class="bar" style="width:4px"></span><span class="lbl">4 · --s-1</span></div>
+          <div class="sp-item"><span class="bar" style="width:8px"></span><span class="lbl">8 · --s-2</span></div>
+          <div class="sp-item"><span class="bar" style="width:12px"></span><span class="lbl">12 · --s-3</span></div>
+          <div class="sp-item"><span class="bar" style="width:16px"></span><span class="lbl">16 · --s-4</span></div>
+          <div class="sp-item"><span class="bar" style="width:20px"></span><span class="lbl">20 · --s-5</span></div>
+          <div class="sp-item"><span class="bar" style="width:24px"></span><span class="lbl">24 · --s-6</span></div>
+          <div class="sp-item"><span class="bar" style="width:32px"></span><span class="lbl">32 · --s-8</span></div>
+          <div class="sp-item"><span class="bar" style="width:40px"></span><span class="lbl">40 · --s-10</span></div>
+          <div class="sp-item"><span class="bar" style="width:48px"></span><span class="lbl">48 · --s-12</span></div>
+          <div class="sp-item"><span class="bar" style="width:64px"></span><span class="lbl">64 · --s-16</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 05 RADIUS -->
+    <section class="block" id="radius">
+      <header>
+        <div class="num">05 — Radius scale</div>
+        <h2>Five values, never mixed loosely</h2>
+        <p>Tags 8px · buttons &amp; inputs 10px · standard cards 16px · metric cards &amp; panels 20px · full-bleed containers &amp; modals 24px · pills 999px.</p>
+      </header>
+      <div class="canvas">
+        <div class="rad-item"><div class="rad-box" style="border-radius:8px"></div><span class="lbl">8px<br>--r-tag</span></div>
+        <div class="rad-item"><div class="rad-box" style="border-radius:10px"></div><span class="lbl">10px<br>--r-control</span></div>
+        <div class="rad-item"><div class="rad-box" style="border-radius:16px"></div><span class="lbl">16px<br>--r-card</span></div>
+        <div class="rad-item"><div class="rad-box" style="border-radius:20px"></div><span class="lbl">20px<br>--r-card-lg</span></div>
+        <div class="rad-item"><div class="rad-box" style="border-radius:24px"></div><span class="lbl">24px<br>--r-container</span></div>
+      </div>
+    </section>
+
+    <!-- 06 SHADOW -->
+    <section class="block" id="shadow">
+      <header>
+        <div class="num">06 — Shadow scale</div>
+        <h2>Soft, low-opacity depth</h2>
+        <p>Cards rely first on white surface + hairline border, then a very subtle shadow. Heavy shadows are never used. Only modals and drawers use the largest elevation.</p>
+      </header>
+      <div class="canvas" style="background:var(--surface)">
+        <div class="sh-item"><div class="sh-box" style="box-shadow:var(--sh-xs)"></div><span class="lbl">--sh-xs<br>chips, secondary buttons</span></div>
+        <div class="sh-item"><div class="sh-box" style="box-shadow:var(--sh-sm)"></div><span class="lbl">--sh-sm<br>standard cards, tables</span></div>
+        <div class="sh-item"><div class="sh-box" style="box-shadow:var(--sh-md)"></div><span class="lbl">--sh-md<br>hovered / lifted cards</span></div>
+        <div class="sh-item"><div class="sh-box" style="box-shadow:var(--sh-lg)"></div><span class="lbl">--sh-lg<br>modals, drawers</span></div>
+      </div>
+      <p class="note">Focus ring: <code>0 0 0 3px rgba(193,18,31,.18)</code> — the crimson accent at low opacity, applied to every focusable control.</p>
+    </section>
+
+    <!-- 07 LAYOUT -->
+    <section class="block" id="layout">
+      <header>
+        <div class="num">07 — Application layout</div>
+        <h2>Left sidebar · top header · main content</h2>
+        <p>One coherent application frame on every page. The sidebar stays visually distinct from content; the content area is generous and calm. This shell is a live demonstration — the clock is real.</p>
+      </header>
+      <div class="shell-demo">
+        <aside class="sd-side">
+          <div class="sd-brand"><span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><use href="#i-orca"/></svg></span>DopeOrca</div>
+          <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-grid"/></svg> Dashboard</div>
+          <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-users"/></svg> CRM</div>
+          <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-userplus"/></svg> Leads</div>
+          <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-folder"/></svg> Projects</div>
+          <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-building"/></svg> Clients</div>
+          <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chart"/></svg> Analytics</div>
+          <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-wallet"/></svg> Finance</div>
+          <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check-sq"/></svg> Tasks</div>
+          <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-wrench"/></svg> Maintenance / AMC</div>
+          <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-gear"/></svg> Settings</div>
+        </aside>
+        <div class="sd-main">
+          <div class="sd-head">
+            <span class="ctx">Dashboard</span>
+            <span class="sd-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><use href="#i-search"/></svg> Search projects, clients, leads…</span>
+            <span class="spacer"></span>
+            <span class="clock" id="clockLayout"><b>—</b><span>—</span></span>
+            <button class="icon-btn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-bell"/></svg><span class="dot"></span></button>
+            <span class="avatar" aria-hidden="true">SK</span>
+          </div>
+          <div class="sd-body">
+            <div class="metric-card"><span class="m-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-folder"/></svg> Active Projects</span><span class="m-value">14</span><span class="m-foot"><span class="trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><use href="#i-arrow-up"/></svg> +3 this month</span></span></div>
+            <div class="metric-card"><span class="m-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-rupee"/></svg> Revenue (received)</span><span class="m-value">₹4,25,000</span><span class="m-foot"><span class="trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><use href="#i-arrow-up"/></svg> +12%</span></span></div>
+            <div class="metric-card"><span class="m-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-wallet"/></svg> Pending Payments</span><span class="m-value">₹86,000</span><span class="m-foot"><span class="trend flat">3 invoices</span></span></div>
+          </div>
+        </div>
+      </div>
+      <p class="caption">Grid: sidebar 240–260px fixed · content max-width ~1200px · page padding 32–40px · card gap 16–24px.</p>
+    </section>
+
+    <!-- 08 SIDEBAR -->
+    <section class="block" id="sidebar">
+      <header>
+        <div class="num">08 — Sidebar &amp; icons</div>
+        <h2>The primary navigation</h2>
+        <p>DopeOrca branding at the top, then the ten destinations in fixed order. One icon library — minimal line icons, 1.7px stroke, 18px in the sidebar. Icons support the label; they never dominate it.</p>
+      </header>
+      <div class="canvas">
+        <aside class="sd-side" style="width:220px;border-right:1px solid var(--border);border-radius:var(--r-card)">
+          <div class="sd-brand"><span class="glyph"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><use href="#i-orca"/></svg></span>DopeOrca</div>
+          <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-grid"/></svg> Dashboard</div>
+          <div class="nav-item active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-userplus"/></svg> Leads</div>
+          <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-folder"/></svg> Projects</div>
+          <div class="nav-item"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-wallet"/></svg> Finance</div>
+        </aside>
+        <div style="flex:1;min-width:220px">
+          <h3 class="sub">Active item treatment</h3>
+          <ul class="rule-list">
+            <li>Background: <code>--crimson-tint</code> (#FDF2F3), rounded <code>--r-control</code></li>
+            <li>Icon + label: <code>--crimson</code>, weight 600</li>
+            <li>Never a solid crimson fill, never bright</li>
+          </ul>
+          <h3 class="sub">Inactive item</h3>
+          <ul class="rule-list">
+            <li>Label <code>--slate</code>, weight 500; icon <code>--slate</code></li>
+            <li>Hover: <code>--surface-2</code> background, text to <code>--charcoal</code></li>
+          </ul>
+          <h3 class="sub">Icon set</h3>
+          <div style="display:flex;flex-wrap:wrap;gap:var(--s-4);margin-top:var(--s-2);color:var(--slate)">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-grid"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-users"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-userplus"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-folder"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-building"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-chart"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-wallet"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-check-sq"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-wrench"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-gear"/></svg>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-bell"/></svg>
+          </div>
+          <p class="caption">One family only. Do not mix filled and outline styles.</p>
+        </div>
+      </div>
+      <p class="note">On tablet the sidebar collapses to a 64px icon rail; on mobile it becomes a slide-over drawer (see §22).</p>
+    </section>
+
+    <!-- 09 HEADER -->
+    <section class="block" id="header">
+      <header>
+        <div class="num">09 — Header · clock · search · notifications · avatar</div>
+        <h2>Context left, search centre, tools right</h2>
+        <p>The header holds page context on the left, the global search in the centre, and the live clock, notifications, and admin avatar on the right. The clock is part of the DopeOrca identity but is never the largest element.</p>
+      </header>
+      <div class="canvas col tight">
+        <div class="sd-head" style="width:100%;border:1px solid var(--border);border-radius:var(--r-card);background:var(--surface)">
+          <span class="ctx">Projects</span>
+          <span class="sd-search"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><use href="#i-search"/></svg> Search projects, clients, leads…</span>
+          <span class="spacer"></span>
+          <span class="clock" id="clockHeader"><b>—</b><span>—</span></span>
+          <button class="icon-btn" aria-label="Notifications"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-bell"/></svg><span class="dot"></span></button>
+          <span class="avatar" aria-hidden="true">SK</span>
+        </div>
+      </div>
+      <h3 class="sub">Live clock spec</h3>
+      <ul class="rule-list">
+        <li>Timezone fixed to <code>Asia/Kolkata</code>; updates every second with no page refresh</li>
+        <li>Format: <code>7:03 PM</code> on the top line (weight 600, charcoal), <code>Monday, September 7, 2026 — Mumbai, India</code> beneath (12px, slate)</li>
+        <li>Right-aligned, tabular figures, subtle — smaller than the page title and the search field</li>
+      </ul>
+      <h3 class="sub">Global search</h3>
+      <ul class="rule-list">
+        <li>Search icon + rounded input (<code>--r-control</code>) on <code>--surface-2</code> with a hairline border</li>
+        <li>Placeholder: <em>Search projects, clients, leads…</em> — never a giant box; max-width ~320–420px</li>
+      </ul>
+      <h3 class="sub">Notifications &amp; avatar</h3>
+      <ul class="rule-list">
+        <li>Bell is a 34px icon button; unread state shows a small crimson dot with a 2px surface ring</li>
+        <li>Avatar is a 32px circle — initials on <code>--crimson-tint</code>, or a photo; never visually dominant</li>
+      </ul>
+    </section>
+
+    <!-- 10 BUTTONS -->
+    <section class="block" id="buttons">
+      <header>
+        <div class="num">10 — Buttons</div>
+        <h2>Four variants, one radius</h2>
+        <p>Primary for the single most important action on a view. Secondary for supporting actions. Tertiary for low-emphasis navigation. Danger only for destructive actions, and never as the default focus of a screen.</p>
+      </header>
+      <div class="canvas">
+        <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#i-plus"/></svg> New Project</button>
+        <button class="btn secondary">Export</button>
+        <button class="btn tertiary">View all</button>
+        <button class="btn danger">Delete project</button>
+      </div>
+      <table class="state-table">
+        <thead><tr><th>Variant</th><th>Rest</th><th>Hover</th><th>Active</th><th>Disabled</th></tr></thead>
+        <tbody>
+          <tr><td>Primary</td><td>crimson / white</td><td>--crimson-hover</td><td>--crimson-active + 1px nudge</td><td>50% opacity</td></tr>
+          <tr><td>Secondary</td><td>white / charcoal / border</td><td>--surface-2, border → muted</td><td>--border fill</td><td>50% opacity</td></tr>
+          <tr><td>Tertiary</td><td>transparent / crimson</td><td>--crimson-tint bg</td><td>tint deepens</td><td>50% opacity</td></tr>
+          <tr><td>Danger</td><td>white / error / error-border</td><td>--error-bg, border → error</td><td>error-bg deepens</td><td>50% opacity</td></tr>
+        </tbody>
+      </table>
+      <p class="note">All buttons: <code>--r-control</code> radius, 9px/16px padding (6px/12px for <code>.sm</code>), 600 weight, focus ring on <code>:focus-visible</code>. No oversized buttons.</p>
+    </section>
+
+    <!-- 11 FORMS -->
+    <section class="block" id="forms">
+      <header>
+        <div class="num">11 — Inputs &amp; forms</div>
+        <h2>Extremely clean, sectioned when complex</h2>
+        <p>Label, input, optional helper text, validation message. Crimson appears only in the focus ring. Long forms are broken into logical sections rather than one tall column.</p>
+      </header>
+      <div class="canvas">
+        <div class="field">
+          <label for="d1">Project name</label>
+          <input class="input" id="d1" type="text" placeholder="e.g. Blue Fig Studio — Website" value="Sea Salt Cafe — Website">
+          <span class="hint">Shown on invoices and the project list.</span>
+        </div>
+        <div class="field">
+          <label for="d2">Lead source</label>
+          <select class="select" id="d2"><option>Referral</option><option>Instagram</option><option>Website enquiry</option><option>Cold outreach</option></select>
+        </div>
+        <div class="field invalid">
+          <label for="d3">Estimated value (₹)</label>
+          <input class="input" id="d3" type="text" value="12,00,00,0" aria-invalid="true">
+          <span class="err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-alert"/></svg> Enter a whole number in rupees.</span>
+        </div>
+        <div class="field">
+          <label for="d4">Requirements</label>
+          <textarea class="textarea" id="d4" placeholder="Scope, pages, integrations, timeline notes…"></textarea>
+        </div>
+      </div>
+      <p class="note">Inputs: white background, <code>--border-strong</code> border, <code>--r-control</code> radius, ~40px height, placeholder <code>--muted</code>. Focus: border → crimson + focus ring. Invalid: border → <code>--error</code>, red focus ring, message with icon (colour is never the only signal).</p>
+    </section>
+
+    <!-- 12 CARDS -->
+    <section class="block" id="cards">
+      <header>
+        <div class="num">12 — Cards &amp; metric cards</div>
+        <h2>Group related information; don't box every value</h2>
+        <p>Standard card: white surface, 16px radius, hairline border, <code>--sh-sm</code>, 20px padding. Metric card: 20px radius, a label, one large number, and at most one supporting element (trend or sparkline).</p>
+      </header>
+      <div class="canvas">
+        <div class="metric-card">
+          <span class="m-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-userplus"/></svg> Total Leads</span>
+          <span class="m-value">37</span>
+          <div class="m-foot">
+            <span class="trend up"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><use href="#i-arrow-up"/></svg> +6 this month</span>
+            <svg width="72" height="28" viewBox="0 0 72 28" fill="none" aria-hidden="true"><polyline points="0,22 12,18 24,20 36,12 48,14 60,6 72,4" stroke="#c1121f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="metric-card">
+          <span class="m-label"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-rupee"/></svg> Overdue Payments</span>
+          <span class="m-value" style="color:var(--error)">₹42,000</span>
+          <div class="m-foot"><span class="trend down"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><use href="#i-arrow-down"/></svg> 2 invoices</span></div>
+        </div>
+        <div class="card interactive" style="min-width:220px;flex:1">
+          <h4>Sea Salt Cafe — Website</h4>
+          <p class="card-sub">Development · deadline Sep 24 · Ananya Rao</p>
+          <div style="margin-top:var(--s-3)"><span class="badge progress">In Progress</span></div>
+        </div>
+      </div>
+      <p class="note">Interactive cards lift on hover (<code>--sh-md</code>, border → <code>--border-strong</code>, 2px rise). Static cards never move. Do not nest cards inside cards.</p>
+    </section>
+
+    <!-- 13 TABLES -->
+    <section class="block" id="tables">
+      <header>
+        <div class="num">13 — Data tables</div>
+        <h2>Readable, not dense</h2>
+        <p>Clear uppercase column headers on <code>--surface-2</code>, comfortable ~44px rows, hairline separators, status badges in-cell, right-aligned tabular numbers, subtle crimson-tint row hover. Sorting and filtering live in a toolbar above the table.</p>
+      </header>
+      <div class="canvas col tight">
+        <div class="tbl-wrap" style="width:100%">
+          <div class="tbl-toolbar">
+            <span class="sd-search" style="max-width:260px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><use href="#i-search"/></svg> Search projects…</span>
+            <button class="btn secondary sm">Status: All</button>
+            <button class="btn secondary sm">This quarter</button>
+            <span style="flex:1"></span>
+            <button class="btn sm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#i-plus"/></svg> New Project</button>
+          </div>
+          <div class="tbl-scroll">
+            <table class="data">
+              <thead><tr><th>Client <span class="caret">▾</span></th><th>Project</th><th>Status</th><th>Due date</th><th class="num">Amount</th><th>Action</th></tr></thead>
+              <tbody>
+                <tr><td>Blue Fig Studio</td><td>Brand website</td><td><span class="badge progress">In Progress</span></td><td>Sep 24, 2026</td><td class="num">₹1,85,000</td><td><a href="#tables">Open</a></td></tr>
+                <tr><td>Sea Salt Cafe</td><td>Website + booking</td><td><span class="badge warning">Client Review</span></td><td>Sep 18, 2026</td><td class="num">₹1,20,000</td><td><a href="#tables">Open</a></td></tr>
+                <tr><td>Kadam &amp; Co.</td><td>Landing page</td><td><span class="badge success">Completed</span></td><td>Aug 30, 2026</td><td class="num">₹65,000</td><td><a href="#tables">Open</a></td></tr>
+                <tr><td>Highfield Realty</td><td>Portal redesign</td><td><span class="badge error">On Hold</span></td><td>—</td><td class="num">₹3,40,000</td><td><a href="#tables">Open</a></td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+      <p class="note">On mobile: the table scrolls horizontally inside its own container, or — where a row is better read as a summary — collapses to a stacked card list with the same fields and badges.</p>
+    </section>
+
+    <!-- 14 BADGES -->
+    <section class="block" id="badges">
+      <header>
+        <div class="num">14 — Status badges</div>
+        <h2>Compact, semantic, never neon</h2>
+        <p>Every status maps to a fixed semantic colour. A dot precedes the label so the status does not rely on colour alone. Radius <code>--r-tag</code>, 12px uppercase text, tinted background with a matching hairline border.</p>
+      </header>
+      <div class="canvas">
+        <span class="badge neutral">Draft</span>
+        <span class="badge info">New</span>
+        <span class="badge progress">In Progress</span>
+        <span class="badge progress">Development</span>
+        <span class="badge warning">Pending</span>
+        <span class="badge warning">Client Review</span>
+        <span class="badge success">Paid</span>
+        <span class="badge success">Completed</span>
+        <span class="badge success">Live</span>
+        <span class="badge error">Overdue</span>
+        <span class="badge error">On Hold</span>
+        <span class="badge neutral">Cancelled</span>
+      </div>
+      <table class="state-table">
+        <thead><tr><th>Semantic</th><th>Token</th><th>Used for</th></tr></thead>
+        <tbody>
+          <tr><td>Neutral</td><td>--slate on --surface-2</td><td>Draft, Cancelled, Archived, Not started</td></tr>
+          <tr><td>Info</td><td>--info</td><td>New lead, informational-only states</td></tr>
+          <tr><td>In progress</td><td>--crimson (tint)</td><td>Active work — In Progress, Development, UI/UX</td></tr>
+          <tr><td>Warning</td><td>--warning</td><td>Pending, Client Review, Negotiation, Renewal soon</td></tr>
+          <tr><td>Success</td><td>--success</td><td>Paid, Completed, Live, Won</td></tr>
+          <tr><td>Error</td><td>--error</td><td>Overdue, On Hold, Lost, Failed</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <!-- 15 PROGRESS -->
+    <section class="block" id="progress">
+      <header>
+        <div class="num">15 — Progress indicators</div>
+        <h2>Clear, calm, never over-animated</h2>
+        <p>A slim 8px track on <code>--border</code> with a crimson fill and the numeric percentage alongside. Project stage progress uses a segmented strip — one segment per stage, filled / partial / empty.</p>
+      </header>
+      <div class="canvas col">
+        <div class="progress">
+          <div class="prow"><span>Development</span><span class="pct">75%</span></div>
+          <div class="track"><i style="width:75%"></i></div>
+        </div>
+        <div class="progress">
+          <div class="prow"><span>Overall project</span><span class="pct">58%</span></div>
+          <div class="track"><i style="width:58%"></i></div>
+          <div class="stage-strip">
+            <span class="done" title="Planning"></span>
+            <span class="done" title="UI/UX"></span>
+            <span class="partial" title="Development"></span>
+            <span title="Testing"></span>
+            <span title="Client Review"></span>
+          </div>
+          <span class="caption">Planning ✓ · UI/UX ✓ · Development 60% · Testing — · Client Review —</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- 16 TIMELINE -->
+    <section class="block" id="timeline">
+      <header>
+        <div class="num">16 — Activity timeline</div>
+        <h2>Minimal — icon, line, timestamp</h2>
+        <p>One line per event: a small icon in a 28px token circle, a short sentence with the key entity in medium weight, and a muted relative timestamp. Payment and completion events use tinted icon circles.</p>
+      </header>
+      <div class="canvas">
+        <div class="timeline" style="width:100%;max-width:520px">
+          <div class="tl-item"><div class="tl-dot success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-check"/></svg></div><div class="tl-body"><div class="tl-title">Payment received — <b>Blue Fig Studio</b> — ₹85,000</div><div class="tl-meta">2 hours ago · UPI · against INV-0142</div></div></div>
+          <div class="tl-item"><div class="tl-dot crimson"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-folder"/></svg></div><div class="tl-body"><div class="tl-title">Project moved to <b>Testing</b> — Sea Salt Cafe</div><div class="tl-meta">5 hours ago</div></div></div>
+          <div class="tl-item"><div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-userplus"/></svg></div><div class="tl-body"><div class="tl-title">New lead added — <b>Highfield Realty</b></div><div class="tl-meta">Yesterday · Referral</div></div></div>
+          <div class="tl-item"><div class="tl-dot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-check-sq"/></svg></div><div class="tl-body"><div class="tl-title">Task completed — <b>Export final assets</b></div><div class="tl-meta">Yesterday · Kadam &amp; Co.</div></div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 17 CHARTS -->
+    <section class="block" id="charts">
+      <header>
+        <div class="num">17 — Charts</div>
+        <h2>Crimson accent, always with the number</h2>
+        <p>Line, bar, simple area, progress, and donut only when genuinely useful. Crimson is the primary series; supporting elements use neutrals and restrained semantic tones. No 3D, no heavy gradients, no decorative charts. The actual value always appears alongside.</p>
+      </header>
+      <div class="chart-grid" style="margin-top:var(--s-4)">
+        <div class="chart-card">
+          <h4>Revenue — last 6 months</h4>
+          <div class="c-val">₹4,25,000 <span style="font:var(--t-meta);color:var(--success)">▲ 12%</span></div>
+          <svg viewBox="0 0 260 96" width="100%" height="96" role="img" aria-label="Monthly revenue trending upward from 2.1 to 4.25 lakh">
+            <line x1="0" y1="80" x2="260" y2="80" stroke="#e5e5e5"/>
+            <line x1="0" y1="44" x2="260" y2="44" stroke="#f0f0f0"/>
+            <polyline points="6,66 50,58 94,62 138,40 182,34 226,16 254,12" fill="none" stroke="#c1121f" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+            <polygon points="6,66 50,58 94,62 138,40 182,34 226,16 254,12 254,80 6,80" fill="#c1121f" opacity="0.06"/>
+            <circle cx="254" cy="12" r="3.5" fill="#c1121f"/>
+          </svg>
+          <div class="c-legend"><span><i style="background:#c1121f"></i>Received revenue</span></div>
+        </div>
+        <div class="chart-card">
+          <h4>Leads by stage</h4>
+          <div class="c-val">37 <span style="font:var(--t-meta);color:var(--slate)">total open</span></div>
+          <svg viewBox="0 0 260 96" width="100%" height="96" role="img" aria-label="Leads by stage: New 12, Contacted 9, Interested 7, Proposal 5, Negotiation 4">
+            <g font-family="Inter" font-size="9" fill="#737373">
+              <rect x="6" y="10" width="150" height="12" rx="3" fill="#c1121f"/><text x="162" y="19">New · 12</text>
+              <rect x="6" y="28" width="112" height="12" rx="3" fill="#c1121f" opacity="0.8"/><text x="124" y="37">Contacted · 9</text>
+              <rect x="6" y="46" width="88" height="12" rx="3" fill="#c1121f" opacity="0.62"/><text x="100" y="55">Interested · 7</text>
+              <rect x="6" y="64" width="62" height="12" rx="3" fill="#c1121f" opacity="0.44"/><text x="74" y="73">Proposal · 5</text>
+              <rect x="6" y="82" width="50" height="12" rx="3" fill="#c1121f" opacity="0.30"/><text x="62" y="91">Negotiation · 4</text>
+            </g>
+          </svg>
+        </div>
+        <div class="chart-card">
+          <h4>Revenue vs expenses</h4>
+          <div class="c-val">₹3,11,000 <span style="font:var(--t-meta);color:var(--slate)">est. profit</span></div>
+          <svg viewBox="0 0 260 96" width="100%" height="96" role="img" aria-label="Revenue 4.25 lakh versus expenses 1.14 lakh over three months">
+            <g>
+              <rect x="20" y="20" width="26" height="60" rx="3" fill="#c1121f"/><rect x="52" y="44" width="26" height="36" rx="3" fill="#d4d4d4"/>
+              <rect x="110" y="30" width="26" height="50" rx="3" fill="#c1121f"/><rect x="142" y="52" width="26" height="28" rx="3" fill="#d4d4d4"/>
+              <rect x="200" y="14" width="26" height="66" rx="3" fill="#c1121f"/><rect x="232" y="48" width="26" height="32" rx="3" fill="#d4d4d4"/>
+              <line x1="10" y1="80" x2="258" y2="80" stroke="#e5e5e5"/>
+            </g>
+          </svg>
+          <div class="c-legend"><span><i style="background:#c1121f"></i>Revenue</span><span><i style="background:#d4d4d4"></i>Expenses</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 18 MODALS / DRAWERS -->
+    <section class="block" id="modals">
+      <header>
+        <div class="num">18 — Modals &amp; drawers</div>
+        <h2>Modals for quick actions · drawers for quick detail</h2>
+        <p>Modals hold short, focused actions — Add Lead, Add Task, Record Payment, Confirm Delete. Drawers slide in from the right for previews — Lead, Client, or Project quick view — so the owner never loses their place. Neither is used for large multi-step workflows.</p>
+      </header>
+      <div class="canvas col" style="gap:var(--s-6)">
+        <div style="width:100%">
+          <h3 class="sub">Modal — Record Payment</h3>
+          <div class="overlay-demo">
+            <div class="scrim"></div>
+            <div class="modal" role="dialog" aria-label="Record payment">
+              <header><h4>Record payment</h4><button class="icon-btn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-x"/></svg></button></header>
+              <div class="m-body">
+                <div class="field" style="max-width:none"><label for="m1">Amount (₹)</label><input class="input" id="m1" value="85,000"></div>
+                <div class="field" style="max-width:none"><label for="m2">Method</label><select class="select" id="m2"><option>UPI</option><option>Bank transfer</option><option>Cash</option></select></div>
+              </div>
+              <footer><button class="btn secondary">Cancel</button><button class="btn">Record payment</button></footer>
+            </div>
+          </div>
+          <p class="caption">Surface white, <code>--r-container</code> radius, <code>--sh-lg</code>, scrim rgba(23,23,23,.28). Title + close top-left/right; primary action bottom-right, secondary to its left.</p>
+        </div>
+        <div style="width:100%">
+          <h3 class="sub">Drawer — Lead quick view</h3>
+          <div class="overlay-demo">
+            <div class="scrim"></div>
+            <aside class="drawer" role="dialog" aria-label="Lead preview">
+              <header><h4>Highfield Realty</h4><button class="icon-btn" aria-label="Close"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-x"/></svg></button></header>
+              <div class="d-body">
+                <div><span class="badge warning">Negotiation</span></div>
+                <dl class="kv">
+                  <dt>Contact</dt><dd>Rahul Menon</dd>
+                  <dt>Phone</dt><dd>+91 98200 11223</dd>
+                  <dt>Service</dt><dd>Portal redesign</dd>
+                  <dt>Est. value</dt><dd>₹3,40,000</dd>
+                  <dt>Follow-up</dt><dd>Sep 9, 2026</dd>
+                  <dt>Source</dt><dd>Referral</dd>
+                </dl>
+              </div>
+              <footer><button class="btn secondary">Open full lead</button><button class="btn">Advance stage</button></footer>
+            </aside>
+          </div>
+          <p class="caption">Width ~340–420px, slides from the right, <code>--sh-lg</code>, left border hairline. Body scrolls; header and footer are fixed.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- 19 STATES -->
+    <section class="block" id="states">
+      <header>
+        <div class="num">19 — Empty · loading · error</div>
+        <h2>Every screen has an intentional non-populated state</h2>
+        <p>Empty states explain and offer an action. Loading uses subtle skeletons, not spinners. Errors are human — no status codes — and always give a way forward.</p>
+      </header>
+      <div class="state-demos" style="margin-top:var(--s-4)">
+        <div class="empty-state">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><use href="#i-inbox"/></svg></div>
+          <h4>No projects yet</h4>
+          <p>Create your first project to start tracking your work.</p>
+          <button class="btn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><use href="#i-plus"/></svg> New Project</button>
+        </div>
+        <div class="skeleton">
+          <div class="sk-line" style="width:40%;height:14px"></div>
+          <div class="sk-line" style="width:80%;margin-top:14px"></div>
+          <div class="sk-line" style="width:66%;margin-top:10px"></div>
+          <div class="sk-line" style="width:90%;margin-top:10px"></div>
+          <div class="sk-line" style="width:52%;margin-top:10px"></div>
+        </div>
+        <div class="error-state">
+          <div class="ic"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><use href="#i-alert"/></svg></div>
+          <h4>Something went wrong</h4>
+          <p>We couldn't load this project. Your data is safe.</p>
+          <button class="btn secondary">Try again</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- 20 NOTIFICATIONS -->
+    <section class="block" id="notifications">
+      <header>
+        <div class="num">20 — Notifications</div>
+        <h2>Compact, readable, low-noise</h2>
+        <p>Icon in a semantic tinted square, a short bold title, one line of supporting detail, and a muted time. Shown in the header dropdown and on the Notifications page with identical styling.</p>
+      </header>
+      <div class="canvas col tight">
+        <div style="width:100%;max-width:460px">
+          <div class="notif">
+            <div class="n-ic error"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-wallet"/></svg></div>
+            <div><div class="n-title">Invoice overdue</div><div class="n-sub">Blue Fig Studio has an overdue payment of ₹85,000.</div></div>
+            <div class="n-time">2h ago</div>
+          </div>
+          <div class="notif">
+            <div class="n-ic success"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><use href="#i-check"/></svg></div>
+            <div><div class="n-title">Payment received</div><div class="n-sub">Sea Salt Cafe paid ₹60,000 via UPI.</div></div>
+            <div class="n-time">5h ago</div>
+          </div>
+          <div class="notif">
+            <div class="n-ic warning"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><use href="#i-clock"/></svg></div>
+            <div><div class="n-title">AMC renewal approaching</div><div class="n-sub">Kadam &amp; Co. hosting renews on Sep 15, 2026.</div></div>
+            <div class="n-time">1d ago</div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 21 MOTION -->
+    <section class="block" id="motion">
+      <header>
+        <div class="num">21 — Motion &amp; hover</div>
+        <h2>Fast, smooth, purposeful</h2>
+      </header>
+      <ul class="rule-list">
+        <li>Durations: <code>120ms</code> for hovers and small state changes, <code>180ms</code> for modals, drawers, dropdowns, sidebar. Easing <code>cubic-bezier(.2,.7,.3,1)</code>.</li>
+        <li>Motion is allowed for: page transitions, hover states, opening modals / dropdowns, sidebar collapse, progress changes.</li>
+        <li>Never: bouncing, large zooms, parallax, looping or ambient movement, attention-seeking effects.</li>
+        <li>Hover: buttons shift colour/depth subtly; interactive cards lift 2px with <code>--sh-md</code>; table rows take a <code>--crimson-tint</code> background; links show the crimson accent.</li>
+        <li>All motion respects <code>prefers-reduced-motion</code> — transitions collapse to near-instant.</li>
+      </ul>
+    </section>
+
+    <!-- 22 A11Y -->
+    <section class="block" id="a11y">
+      <header>
+        <div class="num">22 — Accessibility</div>
+        <h2>Built into the tokens, not bolted on</h2>
+      </header>
+      <ul class="rule-list">
+        <li>Body text (<code>--charcoal</code> / <code>--slate</code>) on white clears WCAG AA; <code>--muted</code> is reserved for non-essential metadata only.</li>
+        <li>Every focusable control shows the crimson focus ring on <code>:focus-visible</code>.</li>
+        <li>Minimum body size 14px; labels 12px with adequate weight and contrast.</li>
+        <li>Status is never colour-only — badges carry a dot and a text label; validation carries an icon and a message.</li>
+        <li>Icons always pair with text in navigation and actions; icon-only buttons carry an <code>aria-label</code>.</li>
+        <li>Interactive targets are at least 34px; hit areas extend to padding.</li>
+      </ul>
+    </section>
+
+    <!-- 23 RESPONSIVE -->
+    <section class="block" id="responsive">
+      <header>
+        <div class="num">23 — Responsive rules</div>
+        <h2>Redesigned per breakpoint, not shrunk</h2>
+      </header>
+      <table class="state-table">
+        <thead><tr><th>Breakpoint</th><th>Sidebar</th><th>Dashboard grid</th><th>Tables</th></tr></thead>
+        <tbody>
+          <tr><td>Desktop ≥ 1200</td><td>Full 240–260px</td><td>3–4 columns</td><td>Full width</td></tr>
+          <tr><td>Laptop 1024–1199</td><td>Full, tighter</td><td>2–3 columns</td><td>Full width</td></tr>
+          <tr><td>Tablet 640–1023</td><td>64px icon rail (toggle to expand)</td><td>2 columns, reduced spacing</td><td>Horizontal scroll in container</td></tr>
+          <tr><td>Mobile < 640</td><td>Slide-over drawer</td><td>1 column, stacked cards</td><td>Scroll or stacked card list</td></tr>
+        </tbody>
+      </table>
+      <p class="note">Mobile navigation keeps fast access to Dashboard, CRM, Leads, Projects, Clients, and Tasks. The header keeps search, a condensed clock, notifications, and quick-add. Primary actions stay reachable (bottom-anchored where needed).</p>
+    </section>
+
+    <!-- 24 GOVERNANCE -->
+    <section class="block" id="governance">
+      <header>
+        <div class="num">24 — Consistency &amp; governance</div>
+        <h2>This system is locked</h2>
+        <p>Every later prompt — application shell, dashboard, CRM, projects, finance, analytics, tasks, maintenance — references and follows this document exactly.</p>
+      </header>
+      <ul class="rule-list">
+        <li>No page introduces a new colour, font, font weight, spacing value, radius, shadow, or component pattern outside what is defined here.</li>
+        <li>These never change between pages: fonts, button styles, border radius, card design, colours, icon style, spacing, table styling, form styling, status badges.</li>
+        <li>Components are built once and reused: buttons (4 variants), inputs / forms, cards (standard + metric), tables, badges, modals, drawers, sidebar (+ icons), header (clock / search / notifications / avatar), charts, progress, activity timeline, empty / loading / error states, notifications.</li>
+        <li>Dark mode is explicitly out of scope for Version 1 — no theme toggle, no dark tokens.</li>
+        <li>Any change to a token or component is a change to this document first, then propagated everywhere.</li>
+      </ul>
+      <div class="canvas" style="background:var(--crimson-tint);border-color:var(--crimson-tint-strong)">
+        <p style="font:var(--t-body);color:var(--charcoal);margin:0"><b>Locked reference.</b> Prompt 03 onward builds screens using only these tokens and components. No business logic, backend, database, or authentication is part of this design-system prompt.</p>
+      </div>
+    </section>
+  </main>
+</div>
+
+<footer class="doc-foot">
+  DopeOrca OS · Design System · Version 1 · Inter · Crimson #C1121F · Light theme only · Mumbai, India · Asia/Kolkata
+</footer>
+
+<script>
+(function () {
+  // ----- live clock (Asia/Kolkata) -----
+  var timeFmt = new Intl.DateTimeFormat('en-IN', { hour: 'numeric', minute: '2-digit', hour12: true, timeZone: 'Asia/Kolkata' });
+  var dateFmt = new Intl.DateTimeFormat('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric', timeZone: 'Asia/Kolkata' });
+  var targets = ['clockLayout', 'clockHeader'].map(function (id) { return document.getElementById(id); });
+  function tick() {
+    var now = new Date();
+    var t = timeFmt.format(now).toUpperCase();
+    var d = dateFmt.format(now) + ' — Mumbai, India';
+    targets.forEach(function (el) {
+      if (!el) return;
+      el.querySelector('b').textContent = t;
+      el.querySelector('span').textContent = d;
+    });
+  }
+  tick();
+  setInterval(tick, 1000);
+
+  // ----- scrollspy -----
+  var links = Array.prototype.slice.call(document.querySelectorAll('.toc a'));
+  var map = {};
+  links.forEach(function (a) { map[a.getAttribute('href').slice(1)] = a; });
+  var obs = new IntersectionObserver(function (entries) {
+    entries.forEach(function (en) {
+      if (en.isIntersecting) {
+        links.forEach(function (l) { l.classList.remove('active'); });
+        if (map[en.target.id]) map[en.target.id].classList.add('active');
+      }
+    });
+  }, { rootMargin: '-15% 0px -75% 0px' });
+  document.querySelectorAll('section.block[id]').forEach(function (s) { obs.observe(s); });
+})();
+</script>
