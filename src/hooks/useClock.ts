@@ -24,6 +24,12 @@ const timeWithSecondsFmt = new Intl.DateTimeFormat("en-GB", {
   timeZone: TIMEZONE,
 });
 
+const hour24Fmt = new Intl.DateTimeFormat("en-GB", {
+  hour: "2-digit",
+  hour12: false,
+  timeZone: TIMEZONE,
+});
+
 export interface ClockValue {
   /** "03:23 PM" */
   time: string;
@@ -31,6 +37,8 @@ export interface ClockValue {
   timeWithSeconds: string;
   /** "Monday, 7 September 2026" */
   date: string;
+  /** Hour of day in Mumbai (IST), 0–23 — for time-of-day logic. */
+  hour: number;
   /** Raw Date object (system clock). */
   now: Date;
 }
@@ -41,6 +49,7 @@ function read(): ClockValue {
     time: timeFmt.format(now).toUpperCase(),
     timeWithSeconds: timeWithSecondsFmt.format(now).toUpperCase(),
     date: dateFmt.format(now),
+    hour: Number(hour24Fmt.format(now)) % 24,
     now,
   };
 }

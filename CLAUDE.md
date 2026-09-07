@@ -54,6 +54,10 @@ src/
 
 ## Status
 
-- ✅ Prompt 01 spec · Prompt 02 design system · **Prompt 03 application shell**
-- ⬜ Dashboard (real data), CRM, Leads, Projects, Tasks, Finance, Analytics, AMC, Settings modules
-- ⬜ Backend, database, authentication
+- ✅ Prompt 01 spec · Prompt 02 design system · Prompt 03 application shell · **Prompt 04 Dashboard**
+- Prompt 04: `src/pages/DashboardPage.tsx` + `src/components/dashboard/*` — greeting, quick actions,
+  metric cards, Today's overview, money/target, sales pipeline, today's tasks, recent activity,
+  project flow. Binds to `getDashboardData()` in `src/data/sampleDashboard.ts` (typed view-models,
+  preview data) via `useAsyncData`.
+- ⬜ CRM/Leads (P05), Projects (P06), Finance/Analytics (P07), Tasks/AMC (P08) real pages
+- ⬜ Backend, database, authentication (P09+)

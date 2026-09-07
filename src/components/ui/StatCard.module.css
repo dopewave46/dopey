@@ -25,14 +25,24 @@
   flex: none;
 }
 
+.valueGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
 .value {
   font: var(--t-display);
-  font-size: 34px;
+  font-size: 32px;
+  line-height: 1.1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums;
 }
 .valueError {
   color: var(--error);
+}
+.support {
+  font: var(--t-meta);
+  color: var(--muted);
 }
 
 .valueSkeleton {

@@ -1,0 +1,19 @@
+.link {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: var(--t-body);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--crimson);
+  padding: 6px 8px;
+  border-radius: var(--r-control);
+  white-space: nowrap;
+}
+.link:hover {
+  background: var(--crimson-tint);
+}
+.link:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}

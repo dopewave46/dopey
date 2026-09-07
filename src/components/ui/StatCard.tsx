@@ -13,6 +13,8 @@ export interface StatCardProps {
     direction: TrendDirection;
     text: string;
   };
+  /** One short supporting line beneath the value (e.g. "3 in progress"). */
+  support?: ReactNode;
   /** Optional supporting element on the right of the footer (e.g. a sparkline). */
   visual?: ReactNode;
   /** Tints the value — use sparingly for genuinely urgent figures. */
@@ -25,6 +27,7 @@ export function StatCard({
   value,
   icon,
   trend,
+  support,
   visual,
   tone = "default",
   loading = false,
@@ -39,7 +42,10 @@ export function StatCard({
       {loading ? (
         <div className={styles.valueSkeleton} aria-hidden="true" />
       ) : (
-        <div className={cn(styles.value, tone === "error" && styles.valueError)}>{value}</div>
+        <div className={styles.valueGroup}>
+          <div className={cn(styles.value, tone === "error" && styles.valueError)}>{value}</div>
+          {support && <div className={styles.support}>{support}</div>}
+        </div>
       )}
 
       {(trend || visual) && !loading && (

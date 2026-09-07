@@ -1,0 +1,31 @@
+.track {
+  width: 100%;
+  background: var(--border);
+  border-radius: var(--r-pill);
+  overflow: hidden;
+}
+.sm {
+  height: 6px;
+}
+.md {
+  height: 8px;
+}
+
+.fill {
+  display: block;
+  height: 100%;
+  border-radius: var(--r-pill);
+  transition: width var(--dur) var(--ease);
+}
+.crimson {
+  background: var(--crimson);
+}
+.success {
+  background: var(--success);
+}
+.warning {
+  background: var(--warning);
+}
+.error {
+  background: var(--error);
+}
