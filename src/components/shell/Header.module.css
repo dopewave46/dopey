@@ -1,0 +1,97 @@
+.header {
+  height: var(--header-h);
+  display: flex;
+  align-items: center;
+  gap: var(--s-4);
+  padding: 0 clamp(16px, 3vw, 28px);
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+}
+
+.left {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex: none;
+}
+
+.menuBtn {
+  display: none;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border-radius: var(--r-control);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--slate);
+  cursor: pointer;
+}
+.menuBtn:hover {
+  background: var(--surface-2);
+  color: var(--charcoal);
+}
+
+.context {
+  font: var(--t-card);
+  white-space: nowrap;
+}
+
+.center {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+  min-width: 0;
+}
+
+.right {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex: none;
+}
+
+.actionSlot {
+  display: flex;
+}
+
+.clock {
+  padding-right: var(--s-1);
+}
+.clockCompact {
+  display: none;
+}
+
+/* Laptop — hide the header action; page headers carry the primary action */
+@media (max-width: 1180px) {
+  .actionSlot {
+    display: none;
+  }
+}
+
+/* Tablet — swap to compact clock, show menu button */
+@media (max-width: 1023px) {
+  .menuBtn {
+    display: grid;
+  }
+}
+
+@media (max-width: 820px) {
+  .clock {
+    display: none;
+  }
+  .clockCompact {
+    display: block;
+  }
+  .center {
+    justify-content: flex-end;
+  }
+}
+
+@media (max-width: 560px) {
+  .context {
+    display: none;
+  }
+  .clockCompact {
+    display: none;
+  }
+}

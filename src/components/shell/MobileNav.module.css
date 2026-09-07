@@ -1,0 +1,115 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 130;
+  background: rgba(23, 23, 23, 0.28);
+  backdrop-filter: blur(1px);
+  animation: fade var(--dur) var(--ease);
+}
+
+.panel {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: min(300px, 86vw);
+  background: var(--surface);
+  border-right: 1px solid var(--border);
+  box-shadow: var(--sh-lg);
+  display: flex;
+  flex-direction: column;
+  padding: var(--s-4);
+  gap: var(--s-3);
+  animation: slide var(--dur) var(--ease);
+}
+
+.head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  font-weight: 700;
+  color: var(--charcoal);
+}
+.glyph {
+  width: 30px;
+  height: 30px;
+  border-radius: 9px;
+  background: var(--crimson);
+  color: #fff;
+  display: grid;
+  place-items: center;
+}
+
+.close {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: var(--r-control);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--slate);
+  cursor: pointer;
+}
+
+.clock {
+  align-items: flex-start;
+  padding: var(--s-2) var(--s-2) var(--s-3);
+  border-bottom: 1px solid var(--border);
+}
+
+.nav {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding-top: var(--s-3);
+  border-top: 1px solid var(--border);
+}
+.avatar {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--r-pill);
+  background: var(--crimson-tint);
+  color: var(--crimson);
+  border: 1px solid var(--crimson-tint-strong);
+  display: grid;
+  place-items: center;
+  font: var(--t-meta);
+  font-weight: 700;
+}
+.profileMeta {
+  display: flex;
+  flex-direction: column;
+}
+.profileName {
+  font: var(--t-body);
+  font-weight: 600;
+}
+.profileSub {
+  font: var(--t-meta);
+  color: var(--muted);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes slide {
+  from {
+    transform: translateX(-16px);
+    opacity: 0.6;
+  }
+}

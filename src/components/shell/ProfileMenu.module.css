@@ -1,0 +1,72 @@
+.trigger {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  padding: 4px 6px 4px 4px;
+  border-radius: var(--r-control);
+  border: 1px solid transparent;
+  background: transparent;
+  cursor: pointer;
+  transition: background var(--dur-fast) var(--ease);
+}
+.trigger:hover {
+  background: var(--surface-2);
+}
+
+.avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-pill);
+  background: var(--crimson-tint);
+  color: var(--crimson);
+  border: 1px solid var(--crimson-tint-strong);
+  display: grid;
+  place-items: center;
+  font: var(--t-meta);
+  font-weight: 700;
+  flex: none;
+}
+
+.meta {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  line-height: 1.2;
+}
+.triggerName {
+  font: var(--t-body);
+  font-weight: 600;
+}
+.triggerRole {
+  font: var(--t-meta);
+  color: var(--muted);
+}
+
+.caret {
+  color: var(--muted);
+  flex: none;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.name {
+  font: var(--t-body);
+  font-weight: 600;
+}
+.email {
+  font: var(--t-meta);
+  color: var(--muted);
+}
+
+@media (max-width: 900px) {
+  .meta,
+  .caret {
+    display: none;
+  }
+  .trigger {
+    padding: 2px;
+  }
+}

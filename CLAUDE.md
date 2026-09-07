@@ -1,0 +1,59 @@
+# DopeOrca OS
+
+Private internal operating system for **DopeOrca Technologies** (solo web-design agency, Mumbai). Single admin user · INR ₹ · Asia/Kolkata · desktop-first, fully responsive.
+
+## Stack
+
+- **Vite + React 18 + TypeScript**, React Router 6 (`createBrowserRouter`)
+- Plain **CSS Modules** + design tokens in `src/styles/tokens.css`. No CSS framework, no component library.
+- No backend / database / auth yet — `src/services/api.ts` is the single seam for later wiring.
+
+## Commands
+
+| | |
+|---|---|
+| `npm run dev` | Vite dev server (port 5173) |
+| `npm run build` | `tsc --noEmit` then `vite build` |
+| `npm run typecheck` | types only |
+
+## Locked references — do not deviate
+
+- **`docs/master-product-spec.html`** — approved scope (Prompt 01). No GST/tax anywhere. Light theme only.
+- **`docs/design-system.html`** — locked visual language (Prompt 02). Inter; crimson `#C1121F`; tokens, spacing (base 4), radius, shadow, components. No page may introduce a colour/font/spacing/radius/shadow/component outside this.
+
+## Architecture
+
+```
+src/
+  components/
+    icons/       Icon.tsx — single inline-SVG icon set (IconName union)
+    ui/          design-system primitives: Button, Card, StatCard, StatusBadge,
+                 Menu, Modal, Drawer, ConfirmDialog, Field, PageHeader,
+                 Breadcrumbs, EmptyState, Skeleton, ErrorState, StubActionButton
+    feedback/    ToastProvider + useToast
+    shell/       Sidebar, Header, Clock, GlobalSearch/SearchPalette,
+                 NotificationBell, ProfileMenu, MobileNav, BottomTabBar,
+                 GlobalActions, RouteError
+  layouts/       AppShell.tsx — sidebar + header + <Outlet> + mobile nav
+  pages/         one file per route; PlaceholderModule for not-yet-built modules
+  hooks/         useClock, useMediaQuery, useOnClickOutside, useDisclosure
+  services/      types.ts (domain models, mirror the spec), api.ts, session.ts
+  config/        navigation.ts (locked nav order)
+  data/          sample* — clearly-labelled preview data, replaced by real modules
+  utils/         cn, format (INR currency, IST dates, relative time)
+```
+
+### Conventions
+
+- Routes are registered in `src/routes.tsx`; every page renders inside `AppShell`.
+- Nav order is locked in `src/config/navigation.ts` (Prompt 03 §1).
+- The live clock is `Asia/Kolkata`, updates every second — `useClock()` / `<Clock>`.
+- Actions whose behaviour lands later use `<StubActionButton>` (toasts, never fakes data).
+- All money via `formatCurrency()`, all dates via `formatDate()` — never inline `Intl`.
+- New shared UI goes in `components/ui` and must use only design tokens.
+
+## Status
+
+- ✅ Prompt 01 spec · Prompt 02 design system · **Prompt 03 application shell**
+- ⬜ Dashboard (real data), CRM, Leads, Projects, Tasks, Finance, Analytics, AMC, Settings modules
+- ⬜ Backend, database, authentication

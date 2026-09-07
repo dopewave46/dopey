@@ -1,0 +1,81 @@
+.wrap {
+  position: relative;
+  display: inline-flex;
+}
+
+.list {
+  position: absolute;
+  top: calc(100% + 8px);
+  z-index: 60;
+  min-width: 200px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-lg);
+  padding: var(--s-1);
+  animation: menuIn var(--dur-fast) var(--ease);
+}
+.alignEnd {
+  right: 0;
+}
+.alignStart {
+  left: 0;
+}
+
+.header {
+  padding: var(--s-3) var(--s-3) var(--s-2);
+  border-bottom: 1px solid var(--border);
+  margin-bottom: var(--s-1);
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: var(--r-tag);
+  background: transparent;
+  border: 0;
+  color: var(--charcoal);
+  font: var(--t-body);
+  font-weight: 500;
+  text-align: left;
+  cursor: pointer;
+}
+.item svg {
+  color: var(--muted);
+  flex: none;
+}
+.item:hover,
+.item:focus-visible {
+  background: var(--surface-2);
+}
+.item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.danger {
+  color: var(--error);
+}
+.danger svg {
+  color: var(--error);
+}
+.danger:hover,
+.danger:focus-visible {
+  background: var(--error-bg);
+}
+
+.dividedGroup {
+  margin-top: var(--s-1);
+  padding-top: var(--s-1);
+  border-top: 1px solid var(--border);
+}
+
+@keyframes menuIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+}

@@ -1,0 +1,118 @@
+.btn {
+  --btn-bg: var(--crimson);
+  --btn-fg: #fff;
+  --btn-bd: transparent;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-2);
+  font: var(--t-body);
+  font-weight: 600;
+  white-space: nowrap;
+  border-radius: var(--r-control);
+  background: var(--btn-bg);
+  color: var(--btn-fg);
+  border: 1px solid var(--btn-bd);
+  cursor: pointer;
+  transition:
+    background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease),
+    box-shadow var(--dur-fast) var(--ease),
+    transform var(--dur-fast) var(--ease);
+}
+
+.md {
+  padding: 9px 16px;
+}
+.sm {
+  padding: 6px 12px;
+  font-size: 13px;
+}
+
+.fullWidth {
+  width: 100%;
+}
+
+.label {
+  display: inline-block;
+}
+
+.btn:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.loading {
+  cursor: progress;
+}
+
+/* Primary */
+.primary:hover:not(:disabled) {
+  background: var(--crimson-hover);
+}
+.primary:active:not(:disabled) {
+  background: var(--crimson-active);
+  transform: translateY(1px);
+}
+
+/* Secondary */
+.secondary {
+  --btn-bg: var(--surface);
+  --btn-fg: var(--charcoal);
+  --btn-bd: var(--border-strong);
+  box-shadow: var(--sh-xs);
+}
+.secondary:hover:not(:disabled) {
+  background: var(--surface-2);
+  border-color: var(--muted);
+}
+.secondary:active:not(:disabled) {
+  background: var(--border);
+}
+
+/* Tertiary */
+.tertiary {
+  --btn-bg: transparent;
+  --btn-fg: var(--crimson);
+}
+.tertiary.md {
+  padding: 9px 10px;
+}
+.tertiary:hover:not(:disabled) {
+  background: var(--crimson-tint);
+}
+.tertiary:active:not(:disabled) {
+  background: var(--crimson-tint-strong);
+}
+
+/* Danger */
+.danger {
+  --btn-bg: var(--surface);
+  --btn-fg: var(--error);
+  --btn-bd: var(--error-border);
+  box-shadow: var(--sh-xs);
+}
+.danger:hover:not(:disabled) {
+  background: var(--error-bg);
+  border-color: var(--error);
+}
+
+.spinner {
+  width: 14px;
+  height: 14px;
+  border-radius: var(--r-pill);
+  border: 2px solid currentColor;
+  border-right-color: transparent;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}

@@ -1,0 +1,56 @@
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font: var(--t-meta);
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  padding: 3px 9px;
+  border-radius: var(--r-tag);
+  border: 1px solid transparent;
+  white-space: nowrap;
+}
+
+.badge::before {
+  content: "";
+  width: 6px;
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: currentColor;
+  flex: none;
+}
+
+.noDot::before {
+  display: none;
+}
+
+.neutral {
+  color: var(--slate);
+  background: var(--surface-2);
+  border-color: var(--border);
+}
+.info {
+  color: var(--info);
+  background: var(--info-bg);
+  border-color: var(--info-border);
+}
+.progress {
+  color: var(--crimson);
+  background: var(--crimson-tint);
+  border-color: var(--crimson-tint-strong);
+}
+.warning {
+  color: var(--warning);
+  background: var(--warning-bg);
+  border-color: var(--warning-border);
+}
+.success {
+  color: var(--success);
+  background: var(--success-bg);
+  border-color: var(--success-border);
+}
+.error {
+  color: var(--error);
+  background: var(--error-bg);
+  border-color: var(--error-border);
+}

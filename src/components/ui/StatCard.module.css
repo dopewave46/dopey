@@ -1,0 +1,89 @@
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card-lg);
+  box-shadow: var(--sh-sm);
+  padding: var(--s-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+  min-width: 0;
+}
+
+.label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: var(--t-meta);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.07em;
+  color: var(--slate);
+}
+.label svg {
+  color: var(--muted);
+  flex: none;
+}
+
+.value {
+  font: var(--t-display);
+  font-size: 34px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+}
+.valueError {
+  color: var(--error);
+}
+
+.valueSkeleton {
+  height: 34px;
+  width: 60%;
+  border-radius: var(--r-tag);
+  background: linear-gradient(90deg, #ededed 25%, #f5f5f5 37%, #ededed 63%);
+  background-size: 400% 100%;
+  animation: shimmer 1.4s ease infinite;
+}
+
+.footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+}
+
+.trend {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: var(--t-meta);
+  font-weight: 600;
+  padding: 3px 8px;
+  border-radius: var(--r-tag);
+}
+.trend_up {
+  color: var(--success);
+  background: var(--success-bg);
+}
+.trend_down {
+  color: var(--error);
+  background: var(--error-bg);
+}
+.trend_flat {
+  color: var(--slate);
+  background: var(--surface-2);
+}
+
+.visual {
+  flex: none;
+  display: flex;
+  align-items: center;
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: 100% 0;
+  }
+  100% {
+    background-position: -100% 0;
+  }
+}

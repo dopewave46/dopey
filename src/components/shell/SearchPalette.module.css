@@ -1,0 +1,127 @@
+.scrim {
+  position: fixed;
+  inset: 0;
+  z-index: 120;
+  background: rgba(23, 23, 23, 0.28);
+  backdrop-filter: blur(1px);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 12vh var(--s-4) var(--s-4);
+  animation: fade var(--dur) var(--ease);
+}
+
+.panel {
+  width: 100%;
+  max-width: 560px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-container);
+  box-shadow: var(--sh-lg);
+  overflow: hidden;
+  animation: pop var(--dur) var(--ease);
+}
+
+.inputRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--border);
+  color: var(--muted);
+}
+
+.input {
+  flex: 1;
+  border: 0;
+  outline: none;
+  background: transparent;
+  font: var(--t-body-lg);
+  color: var(--charcoal);
+}
+.input::placeholder {
+  color: var(--muted);
+}
+
+.esc {
+  font: var(--t-meta);
+  font-family: var(--font);
+  font-weight: 600;
+  color: var(--muted);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 2px 6px;
+}
+
+.body {
+  padding: var(--s-3);
+  max-height: 52vh;
+  overflow-y: auto;
+}
+
+.hintBlock {
+  padding: var(--s-5);
+  text-align: center;
+}
+.hintTitle {
+  font: var(--t-body);
+  font-weight: 600;
+}
+.hintText {
+  font: var(--t-meta);
+  color: var(--slate);
+  margin-top: 4px;
+  max-width: 40ch;
+  margin-inline: auto;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.result {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  background: transparent;
+  border-radius: var(--r-control);
+  cursor: pointer;
+  text-align: left;
+}
+.result:hover,
+.result:focus-visible {
+  background: var(--crimson-tint);
+  outline: none;
+}
+
+.resultIcon {
+  color: var(--slate);
+  display: flex;
+}
+.resultLabel {
+  font: var(--t-body);
+  font-weight: 500;
+  flex: 1;
+}
+.resultHint {
+  font: var(--t-meta);
+  color: var(--muted);
+}
+
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes pop {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+}

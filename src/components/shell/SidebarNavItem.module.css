@@ -1,0 +1,44 @@
+.item {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 9px 10px;
+  border-radius: var(--r-control);
+  color: var(--slate);
+  font: var(--t-body);
+  font-weight: 500;
+  transition: background var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+
+.item:hover {
+  background: var(--surface-2);
+  color: var(--charcoal);
+}
+
+.item:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.active,
+.active:hover {
+  background: var(--crimson-tint);
+  color: var(--crimson);
+  font-weight: 600;
+}
+
+.icon {
+  display: flex;
+  flex: none;
+}
+
+.label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collapsed {
+  justify-content: center;
+  padding: 10px;
+}

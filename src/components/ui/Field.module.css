@@ -1,0 +1,71 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.label {
+  font: var(--t-body);
+  font-weight: 600;
+  color: var(--charcoal);
+}
+
+.control {
+  font: var(--t-body);
+  color: var(--charcoal);
+  background: var(--surface);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-control);
+  padding: 10px 12px;
+  width: 100%;
+  transition: border-color var(--dur-fast) var(--ease), box-shadow var(--dur-fast) var(--ease);
+}
+.control::placeholder {
+  color: var(--muted);
+}
+.control:focus {
+  outline: none;
+  border-color: var(--crimson);
+  box-shadow: var(--focus-ring);
+}
+
+.textarea {
+  min-height: 88px;
+  resize: vertical;
+}
+
+.selectWrap {
+  position: relative;
+}
+.selectWrap .control {
+  appearance: none;
+  padding-right: 34px;
+}
+.selectCaret {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  pointer-events: none;
+}
+
+.hint {
+  font: var(--t-meta);
+  color: var(--muted);
+}
+
+.error {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font: var(--t-meta);
+  color: var(--error);
+}
+
+.invalid .control {
+  border-color: var(--error);
+}
+.invalid .control:focus {
+  box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.16);
+}
