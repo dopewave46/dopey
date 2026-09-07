@@ -9,6 +9,7 @@ import { ClientsPage } from "@/pages/ClientsPage";
 import { ClientDetailPage } from "@/pages/ClientDetailPage";
 import { FollowUpsPage } from "@/pages/FollowUpsPage";
 import { ProjectsPage } from "@/pages/ProjectsPage";
+import { ProjectDetailPage } from "@/pages/ProjectDetailPage";
 import { TasksPage } from "@/pages/TasksPage";
 import { FinancePage } from "@/pages/FinancePage";
 import { AnalyticsPage } from "@/pages/AnalyticsPage";
@@ -32,6 +33,7 @@ export const router = createBrowserRouter([
       { path: "clients/:id", element: <ClientDetailPage /> },
       { path: "follow-ups", element: <FollowUpsPage /> },
       { path: "projects", element: <ProjectsPage /> },
+      { path: "projects/:id", element: <ProjectDetailPage /> },
       { path: "tasks", element: <TasksPage /> },
       { path: "finance", element: <FinancePage /> },
       { path: "analytics", element: <AnalyticsPage /> },

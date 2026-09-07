@@ -7,46 +7,57 @@ import { Textarea } from "@/components/ui/Field";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Tabs, TabPanel } from "@/components/ui/Tabs";
 import { ActivityTimeline } from "@/components/ui/ActivityTimeline";
+import { ProgressBar } from "@/components/ui/ProgressBar";
 import { Menu } from "@/components/ui/Menu";
+import { Icon } from "@/components/icons/Icon";
 import { ClientStatusBadge } from "@/components/crm/badges";
 import { ClientFormModal } from "@/components/crm/ClientFormModal";
 import { ScheduleFollowUpModal } from "@/components/crm/ScheduleFollowUpModal";
+import { NewProjectModal } from "@/components/projects/NewProjectModal";
+import { ProjectStatusBadge } from "@/components/projects/badges";
 import { useCrm } from "@/hooks/useCrm";
+import { useProjects } from "@/hooks/useProjects";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useToast } from "@/components/feedback/ToastProvider";
 import { activitiesForEntity } from "@/services/crmSelectors";
+import { projectsForClient, isActiveStatus } from "@/services/projectSelectors";
 import { crmStore } from "@/services/crmStore";
-import { formatDate } from "@/utils/format";
+import { formatCurrency, formatDate } from "@/utils/format";
 import { SAMPLE_CLIENT_CONTEXT } from "@/data/sampleCrm";
 import s from "@/components/crm/detail.module.css";
-
-const TABS = [
-  { value: "overview", label: "Overview" },
-  { value: "projects", label: "Projects" },
-  { value: "invoices", label: "Invoices" },
-  { value: "payments", label: "Payments" },
-  { value: "tasks", label: "Tasks" },
-  { value: "notes", label: "Notes" },
-  { value: "activity", label: "Activity" },
-];
+import cs from "./ClientDetailPage.module.css";
 
 export function ClientDetailPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
   const { clients, leads, activities } = useCrm();
+  const { projects } = useProjects();
 
   const client = clients.find((c) => c.id === id);
   const [tab, setTab] = useState("overview");
   const [notesDraft, setNotesDraft] = useState(client?.notes ?? "");
   const editModal = useDisclosure();
   const followUpModal = useDisclosure();
+  const projectModal = useDisclosure();
 
   const clientActivities = useMemo(
     () => (client ? activitiesForEntity(activities, client.id) : []),
     [activities, client],
   );
+  const clientProjects = useMemo(() => projectsForClient(projects, id), [projects, id]);
+  const activeProject = clientProjects.find((p) => isActiveStatus(p.status));
   const sourceLead = client?.sourceLeadId ? leads.find((l) => l.id === client.sourceLeadId) : undefined;
+
+  const TABS = [
+    { value: "overview", label: "Overview" },
+    { value: "projects", label: "Projects", count: clientProjects.length },
+    { value: "invoices", label: "Invoices" },
+    { value: "payments", label: "Payments" },
+    { value: "tasks", label: "Tasks" },
+    { value: "notes", label: "Notes" },
+    { value: "activity", label: "Activity" },
+  ];
 
   if (!client) {
     return (
@@ -84,14 +95,7 @@ export function ClientDetailPage() {
             <Menu
               align="end"
               items={[
-                {
-                  label: "Add project",
-                  icon: "projects",
-                  onSelect: () => {
-                    toast.info("Add project", "The project form opens in the Projects module.");
-                    navigate("/projects");
-                  },
-                },
+                { label: "Add project", icon: "projects", onSelect: projectModal.open },
                 {
                   label: "Add task",
                   icon: "tasks",
@@ -164,15 +168,25 @@ export function ClientDetailPage() {
             <Card>
               <CardHeader title="Snapshot" />
               <dl className={s.fields}>
+                <dt>Projects</dt>
+                <dd>{clientProjects.length === 0 ? "None yet" : `${clientProjects.length} total`}</dd>
                 <dt>Active project</dt>
-                <dd>{ctx.activeProject || "—"}</dd>
+                <dd>
+                  {activeProject ? (
+                    <button className={cs.linkBtn} onClick={() => navigate(`/projects/${activeProject.id}`)}>
+                      {activeProject.name}
+                    </button>
+                  ) : (
+                    "—"
+                  )}
+                </dd>
                 <dt>Invoices</dt>
                 <dd style={{ color: ctx.overdueInvoice ? "var(--error)" : "var(--slate)" }}>
                   {ctx.overdueInvoice ? "1 overdue" : "None overdue"}
                 </dd>
               </dl>
               <p style={{ font: "var(--t-meta)", color: "var(--muted)", marginTop: "var(--s-2)" }}>
-                Project and invoice data connects in Prompts 06–07.
+                Invoice data connects with Finance (Prompt 07).
               </p>
             </Card>
           </div>
@@ -180,12 +194,44 @@ export function ClientDetailPage() {
       </TabPanel>
 
       <TabPanel when="projects" value={tab}>
-        <EmptyState
-          icon="projects"
-          title={ctx.activeProject ? `1 active project — ${ctx.activeProject}` : "No projects yet"}
-          description="The full project list, progress and timeline live in the Projects module (Prompt 06)."
-          action={<Button variant="secondary" onClick={() => navigate("/projects")}>Open Projects</Button>}
-        />
+        {clientProjects.length === 0 ? (
+          <EmptyState
+            icon="projects"
+            title="No projects yet"
+            description="Start a project for this client to begin tracking work."
+            action={
+              <Button iconLeft="plus" onClick={projectModal.open}>
+                Start a project
+              </Button>
+            }
+          />
+        ) : (
+          <Card padding="none">
+            <ul className={cs.projectList}>
+              {clientProjects.map((proj) => (
+                <li key={proj.id}>
+                  <button className={cs.projectRow} onClick={() => navigate(`/projects/${proj.id}`)}>
+                    <span className={cs.projectMain}>
+                      <span className={cs.projectName}>{proj.name}</span>
+                      <span className={cs.projectMeta}>
+                        {formatCurrency(proj.value)}
+                        {proj.deadline ? ` · due ${formatDate(proj.deadline)}` : ""}
+                      </span>
+                      <span className={cs.projectBar}>
+                        <ProgressBar value={proj.progressPercent} size="sm" label={`${proj.name} progress`} />
+                      </span>
+                    </span>
+                    <span className={cs.projectRight}>
+                      <ProjectStatusBadge status={proj.status} />
+                      <span className={cs.projectPct}>{proj.progressPercent}%</span>
+                      <Icon name="chevron-right" size={16} className={cs.chev} />
+                    </span>
+                  </button>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
       </TabPanel>
 
       <TabPanel when="invoices" value={tab}>
@@ -249,6 +295,12 @@ export function ClientDetailPage() {
         parentType="client"
         parentId={client.id}
         parentName={client.company || client.name}
+      />
+      <NewProjectModal
+        open={projectModal.isOpen}
+        onClose={projectModal.close}
+        navigateOnCreate
+        prefill={{ clientId: client.id, name: `${client.company || client.name} — Website` }}
       />
     </>
   );

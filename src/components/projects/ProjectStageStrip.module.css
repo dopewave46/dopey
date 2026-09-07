@@ -1,0 +1,68 @@
+.strip {
+  display: flex;
+  gap: 6px;
+  position: relative;
+}
+
+.seg {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  min-width: 0;
+}
+
+.bar {
+  height: 6px;
+  border-radius: var(--r-pill);
+  background: var(--border);
+}
+.done .bar {
+  background: var(--crimson);
+}
+.current .bar {
+  background: var(--crimson);
+  box-shadow: 0 0 0 3px var(--crimson-tint);
+}
+
+.label {
+  font: var(--t-meta);
+  font-size: 11px;
+  color: var(--muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.done .label {
+  color: var(--slate);
+}
+.current .label {
+  color: var(--crimson);
+  font-weight: 700;
+}
+
+.held {
+  opacity: 0.5;
+}
+.heldTag {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  font: var(--t-meta);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--slate);
+  opacity: 1;
+}
+
+@media (max-width: 720px) {
+  .strip {
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+  .seg {
+    min-width: 84px;
+  }
+}

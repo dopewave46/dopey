@@ -145,6 +145,15 @@ export interface Project extends Timestamped {
   liveUrl?: string;
 }
 
+export interface ProjectStage {
+  id: ID;
+  projectId: ID;
+  stageName: string;
+  state: "not_started" | "in_progress" | "done";
+  completionPercent: number;
+  order: number;
+}
+
 export interface Task extends Timestamped {
   id: ID;
   title: string;

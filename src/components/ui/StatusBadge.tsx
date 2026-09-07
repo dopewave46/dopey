@@ -23,17 +23,19 @@ export function StatusBadge({ children, tone = "neutral", hideDot = false, class
 /* Canonical status -> tone + label maps (locked semantics)           */
 /* ------------------------------------------------------------------ */
 
+// Tones locked by Prompt 06 §8: working statuses informational, Live/Completed
+// success, On Hold neutral (never alarming).
 export const PROJECT_STATUS_META: Record<string, { label: string; tone: BadgeTone }> = {
   planning: { label: "Planning", tone: "neutral" },
-  ui_ux: { label: "UI/UX", tone: "progress" },
-  development: { label: "Development", tone: "progress" },
-  testing: { label: "Testing", tone: "progress" },
+  ui_ux: { label: "UI/UX", tone: "info" },
+  development: { label: "Development", tone: "info" },
+  testing: { label: "Testing", tone: "info" },
   client_review: { label: "Client Review", tone: "warning" },
   revision: { label: "Revision", tone: "warning" },
   ready_for_launch: { label: "Ready for Launch", tone: "info" },
   live: { label: "Live", tone: "success" },
   completed: { label: "Completed", tone: "success" },
-  on_hold: { label: "On Hold", tone: "error" },
+  on_hold: { label: "On Hold", tone: "neutral" },
 };
 
 // Tones locked by Prompt 05 §12.

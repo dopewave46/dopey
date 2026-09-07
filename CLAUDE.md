@@ -54,7 +54,13 @@ src/
 
 ## Status
 
-- ✅ P01 spec · P02 design system · P03 shell · P04 Dashboard · **P05 CRM + Leads**
+- ✅ P01 spec · P02 design system · P03 shell · P04 Dashboard · P05 CRM + Leads · **P06 Projects**
+- P06: `src/services/projectStore.ts` (in-memory, `useProjects`), seed `src/data/sampleProjects.ts`,
+  selectors `src/services/projectSelectors.ts`. Routes `/projects` (card grid + status board toggle)
+  and `/projects/:id` (tabs: Overview/Tasks/Timeline/Finance/Links/Notes). `NewProjectModal` is the
+  ONE "Start New Project" form — used by `GlobalActions` (Dashboard/header), ProjectsPage,
+  ConvertLeadModal (prefilled) and ClientDetailPage. `financeFor()` payment status is placeholder
+  (Prompt 07). Client profile Projects tab now shows real linked projects.
 - P04: `src/pages/DashboardPage.tsx` + `src/components/dashboard/*`, binds `getDashboardData()`.
 - P05: CRM module —
   - Routes: `/crm` `/leads` `/leads/:id` `/clients` `/clients/:id` `/follow-ups`. "Clients" added to sidebar nav.
