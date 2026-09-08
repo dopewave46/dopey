@@ -21,7 +21,7 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Tasks", to: "/tasks", icon: "tasks", primaryMobile: true },
   { label: "Finance", to: "/finance", icon: "finance" },
   { label: "Analytics", to: "/analytics", icon: "analytics" },
-  { label: "Maintenance / AMC", to: "/maintenance", icon: "maintenance" },
+  { label: "Maintenance / AMC", to: "/amc", icon: "maintenance" },
   { label: "Settings", to: "/settings", icon: "settings" },
 ];
 

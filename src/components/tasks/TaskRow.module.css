@@ -1,0 +1,126 @@
+.row {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  padding: 11px var(--s-4);
+  border-bottom: 1px solid var(--border);
+}
+.row:last-child {
+  border-bottom: 0;
+}
+
+.check {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border-strong);
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: #fff;
+  cursor: pointer;
+  background: var(--surface);
+  transition: background var(--dur-fast) var(--ease), border-color var(--dur-fast) var(--ease);
+}
+.check[data-done="true"] {
+  background: var(--crimson);
+  border-color: var(--crimson);
+}
+.check:focus-visible {
+  outline: none;
+  box-shadow: var(--focus-ring);
+}
+
+.body {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  background: transparent;
+  padding: 0;
+  text-align: left;
+  cursor: pointer;
+}
+.body:hover .title {
+  color: var(--crimson);
+}
+
+.priority {
+  width: 8px;
+  height: 8px;
+  border-radius: var(--r-pill);
+  flex: none;
+}
+
+.title {
+  font: var(--t-body);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.done .title {
+  color: var(--muted);
+  text-decoration: line-through;
+}
+.done .priority {
+  opacity: 0.5;
+}
+
+.meta {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+  flex: none;
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font: var(--t-meta);
+  font-weight: 600;
+  color: var(--slate);
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-tag);
+  padding: 2px 7px;
+  cursor: pointer;
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.chip:hover {
+  color: var(--crimson);
+  border-color: var(--crimson-tint-strong);
+  background: var(--crimson-tint);
+}
+
+.client {
+  font: var(--t-meta);
+  color: var(--muted);
+}
+
+.due {
+  font: var(--t-meta);
+  color: var(--slate);
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+.due.overdue {
+  color: var(--error);
+  font-weight: 600;
+}
+
+@media (max-width: 560px) {
+  .row {
+    flex-wrap: wrap;
+  }
+  .meta {
+    width: 100%;
+    padding-left: calc(18px + var(--s-3));
+  }
+}

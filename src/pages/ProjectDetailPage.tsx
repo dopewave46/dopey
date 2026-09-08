@@ -15,11 +15,12 @@ import { NewProjectModal } from "@/components/projects/NewProjectModal";
 import { RecordPaymentModal } from "@/components/finance/RecordPaymentModal";
 import { InvoiceFormModal } from "@/components/finance/InvoiceFormModal";
 import { InvoiceStatusBadge } from "@/components/finance/badges";
-import { AddProjectTaskModal } from "@/components/projects/AddProjectTaskModal";
+import { TaskFormModal } from "@/components/tasks/TaskFormModal";
 import { ProjectStageStrip } from "@/components/projects/ProjectStageStrip";
 import { ProjectTimeline } from "@/components/projects/ProjectTimeline";
 import { ProjectStatusBadge } from "@/components/projects/badges";
 import { useProjects } from "@/hooks/useProjects";
+import { useTasks } from "@/hooks/useTasks";
 import { useCrm } from "@/hooks/useCrm";
 import { useFinance } from "@/hooks/useFinance";
 import { useDisclosure } from "@/hooks/useDisclosure";
@@ -45,7 +46,8 @@ export function ProjectDetailPage() {
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const toast = useToast();
-  const { projects, stages, tasks, activities, store } = useProjects();
+  const { projects, stages, activities, store } = useProjects();
+  const { tasks, store: taskStore } = useTasks();
   const { clients } = useCrm();
   const { invoices, payments } = useFinance();
 
@@ -214,14 +216,15 @@ export function ProjectDetailPage() {
             <ul className={p.taskList}>
               {projectTasks.map((task) => {
                 const done = task.status === "completed";
-                const overdue = !done && task.dueDate && new Date(task.dueDate) < new Date();
+                const overdue =
+                  !done && task.dueDate && new Date(task.dueDate).getTime() < new Date().setHours(0, 0, 0, 0);
                 return (
                   <li key={task.id} className={p.taskItem}>
                     <button
                       type="button"
                       className={p.taskCheck}
                       data-done={done}
-                      onClick={() => store.toggleTask(task.id)}
+                      onClick={() => taskStore.toggleTask(task.id)}
                       aria-pressed={done}
                       aria-label={done ? "Mark task incomplete" : "Mark task complete"}
                     >
@@ -241,7 +244,7 @@ export function ProjectDetailPage() {
             </ul>
           )}
           <p className={p.footNote}>
-            Full task management — priority, buckets, status — arrives with the Tasks module (Prompt 08).
+            These tasks also show on the <Link to="/tasks">Tasks</Link> page and the client's profile.
           </p>
         </Card>
       </TabPanel>
@@ -454,7 +457,11 @@ export function ProjectDetailPage() {
         prefill={{ projectId: project.id }}
         navigateOnCreate
       />
-      <AddProjectTaskModal open={taskModal.isOpen} onClose={taskModal.close} projectId={project.id} />
+      <TaskFormModal
+        open={taskModal.isOpen}
+        onClose={taskModal.close}
+        prefill={{ projectId: project.id, clientId: project.clientId }}
+      />
       <ConfirmDialog
         open={deleteConfirm.isOpen}
         onClose={deleteConfirm.close}

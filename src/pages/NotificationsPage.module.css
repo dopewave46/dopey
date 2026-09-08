@@ -4,11 +4,6 @@
 }
 
 .item {
-  display: grid;
-  grid-template-columns: 36px 1fr auto;
-  gap: var(--s-3);
-  align-items: start;
-  padding: var(--s-4) var(--s-5);
   border-bottom: 1px solid var(--border);
 }
 .item:last-child {
@@ -16,6 +11,21 @@
 }
 .unread {
   background: var(--crimson-tint);
+}
+.rowBtn {
+  display: grid;
+  grid-template-columns: 36px 1fr auto;
+  gap: var(--s-3);
+  align-items: start;
+  width: 100%;
+  padding: var(--s-4) var(--s-5);
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+.rowBtn:hover .title {
+  color: var(--crimson);
 }
 
 .icon {

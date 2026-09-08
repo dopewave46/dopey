@@ -4,6 +4,8 @@ import { ErrorState } from "@/components/ui/ErrorState";
 import { SkeletonCard } from "@/components/ui/Skeleton";
 import { useAsyncData } from "@/hooks/useAsyncData";
 import { useFinance } from "@/hooks/useFinance";
+import { useTasks } from "@/hooks/useTasks";
+import { tasksInBucket } from "@/services/taskSelectors";
 import { revenueSummary, currentMonthProgress } from "@/services/financeSelectors";
 import { formatCurrency } from "@/utils/format";
 import { CURRENT_ADMIN } from "@/services/session";
@@ -22,7 +24,10 @@ import s from "@/components/dashboard/sections.module.css";
 export function DashboardPage() {
   const { data, loading, error, reload } = useAsyncData(getDashboardData);
   const { invoices, payments, expenses } = useFinance();
+  const { tasks } = useTasks();
   const [showNotice, setShowNotice] = useState(true);
+
+  const todayTasks = useMemo(() => tasksInBucket(tasks, "today"), [tasks]);
 
   // The Money section + Revenue/Pending metrics read from the Finance store
   // (Prompt 07 §9) — one source of truth, never drifting from /finance.
@@ -93,7 +98,7 @@ export function DashboardPage() {
           </div>
 
           <div className={s.split}>
-            <TodayTasksCard tasks={data.tasks} />
+            <TodayTasksCard tasks={todayTasks} />
             <RecentActivityCard activity={data.activity} />
           </div>
 

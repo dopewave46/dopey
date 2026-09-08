@@ -213,6 +213,14 @@ export interface Amc extends Timestamped {
   notes?: string;
 }
 
+export interface AmcTask {
+  id: ID;
+  amcId: ID;
+  title: string;
+  status: "todo" | "done";
+  dueDate?: ISODateString;
+}
+
 export interface FollowUp {
   id: ID;
   parentType: "lead" | "client";

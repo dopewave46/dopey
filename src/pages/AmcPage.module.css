@@ -1,0 +1,90 @@
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--s-4);
+  margin-bottom: var(--s-5);
+}
+
+.renewalCard {
+  margin-bottom: var(--s-5);
+}
+
+.renewalList {
+  display: flex;
+  flex-direction: column;
+}
+
+.renewalRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  width: 100%;
+  padding: 10px 0;
+  border: 0;
+  background: transparent;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  cursor: pointer;
+}
+.renewalRow:last-child {
+  border-bottom: 0;
+}
+.renewalRow:hover .renewalTitle {
+  color: var(--crimson);
+}
+
+.renewalIcon {
+  width: 30px;
+  height: 30px;
+  flex: none;
+  border-radius: var(--r-control);
+  display: grid;
+  place-items: center;
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
+  color: var(--warning);
+}
+.renewalIcon[data-late="true"] {
+  background: var(--error-bg);
+  border-color: var(--error-border);
+  color: var(--error);
+}
+
+.renewalBody {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  flex: 1;
+  min-width: 0;
+}
+.renewalTitle {
+  font: var(--t-body);
+  font-weight: 500;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.renewalMeta {
+  font: var(--t-meta);
+  color: var(--muted);
+}
+.renewalDays {
+  font: var(--t-meta);
+  font-weight: 700;
+  color: var(--warning);
+  white-space: nowrap;
+}
+.renewalDays[data-late="true"] {
+  color: var(--error);
+}
+
+@media (max-width: 1023px) {
+  .statRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+@media (max-width: 480px) {
+  .statRow {
+    grid-template-columns: 1fr;
+  }
+}

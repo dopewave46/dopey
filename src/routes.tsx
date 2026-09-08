@@ -18,7 +18,8 @@ import { InvoiceDetailPage } from "@/pages/finance/InvoiceDetailPage";
 import { PaymentsPage } from "@/pages/finance/PaymentsPage";
 import { ExpensesPage } from "@/pages/finance/ExpensesPage";
 import { AnalyticsPage } from "@/pages/AnalyticsPage";
-import { MaintenancePage } from "@/pages/MaintenancePage";
+import { AmcPage } from "@/pages/AmcPage";
+import { AmcDetailPage } from "@/pages/AmcDetailPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { NotificationsPage } from "@/pages/NotificationsPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
@@ -52,7 +53,9 @@ export const router = createBrowserRouter([
       },
       { path: "finance/invoices/:id", element: <InvoiceDetailPage /> },
       { path: "analytics", element: <AnalyticsPage /> },
-      { path: "maintenance", element: <MaintenancePage /> },
+      { path: "amc", element: <AmcPage /> },
+      { path: "amc/:id", element: <AmcDetailPage /> },
+      { path: "maintenance", element: <Navigate to="/amc" replace /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "notifications", element: <NotificationsPage /> },
       { path: "*", element: <NotFoundPage /> },

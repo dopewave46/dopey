@@ -15,11 +15,13 @@ import { ClientFormModal } from "@/components/crm/ClientFormModal";
 import { ScheduleFollowUpModal } from "@/components/crm/ScheduleFollowUpModal";
 import { NewProjectModal } from "@/components/projects/NewProjectModal";
 import { ProjectStatusBadge } from "@/components/projects/badges";
+import { TaskFormModal } from "@/components/tasks/TaskFormModal";
 import { InvoiceStatusBadge } from "@/components/finance/badges";
 import { InvoiceFormModal } from "@/components/finance/InvoiceFormModal";
 import { RecordPaymentModal } from "@/components/finance/RecordPaymentModal";
 import { useCrm } from "@/hooks/useCrm";
 import { useProjects } from "@/hooks/useProjects";
+import { useTasks } from "@/hooks/useTasks";
 import { useFinance } from "@/hooks/useFinance";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useToast } from "@/components/feedback/ToastProvider";
@@ -39,6 +41,7 @@ export function ClientDetailPage() {
   const toast = useToast();
   const { clients, leads, activities } = useCrm();
   const { projects } = useProjects();
+  const { tasks, store: taskStore } = useTasks();
 
   const client = clients.find((c) => c.id === id);
   const [tab, setTab] = useState("overview");
@@ -46,6 +49,15 @@ export function ClientDetailPage() {
   const editModal = useDisclosure();
   const followUpModal = useDisclosure();
   const projectModal = useDisclosure();
+  const taskModal = useDisclosure();
+
+  const clientTasks = useMemo(
+    () =>
+      tasks
+        .filter((t) => t.clientId === id)
+        .sort((a, b) => (a.status === b.status ? 0 : a.status === "completed" ? 1 : -1)),
+    [tasks, id],
+  );
 
   const clientActivities = useMemo(
     () => (client ? activitiesForEntity(activities, client.id) : []),
@@ -65,7 +77,7 @@ export function ClientDetailPage() {
     { value: "projects", label: "Projects", count: clientProjects.length },
     { value: "invoices", label: "Invoices", count: fin.invoices.length },
     { value: "payments", label: "Payments", count: fin.payments.length },
-    { value: "tasks", label: "Tasks" },
+    { value: "tasks", label: "Tasks", count: clientTasks.length },
     { value: "notes", label: "Notes" },
     { value: "activity", label: "Activity" },
   ];
@@ -105,14 +117,7 @@ export function ClientDetailPage() {
               align="end"
               items={[
                 { label: "Add project", icon: "projects", onSelect: projectModal.open },
-                {
-                  label: "Add task",
-                  icon: "tasks",
-                  onSelect: () => {
-                    toast.info("Add task", "The task form opens in the Tasks module.");
-                    navigate("/tasks");
-                  },
-                },
+                { label: "Add task", icon: "tasks", onSelect: taskModal.open },
                 { label: "Schedule follow-up", icon: "calendar", onSelect: followUpModal.open },
                 { label: "Add note", icon: "clock", onSelect: () => setTab("notes") },
               ]}
@@ -336,12 +341,60 @@ export function ClientDetailPage() {
       </TabPanel>
 
       <TabPanel when="tasks" value={tab}>
-        <EmptyState
-          icon="tasks"
-          title="Tasks"
-          description="Tasks linked to this client connect with the Tasks module (Prompt 08)."
-          action={<Button variant="secondary" onClick={() => navigate("/tasks")}>Open Tasks</Button>}
-        />
+        {clientTasks.length === 0 ? (
+          <EmptyState
+            icon="tasks"
+            title="No tasks yet"
+            description="Add a task linked to this client."
+            action={
+              <Button iconLeft="plus" onClick={taskModal.open}>
+                Add Task
+              </Button>
+            }
+          />
+        ) : (
+          <Card padding="none">
+            <div className={p.tabHeader}>
+              <h3 className={p.tabTitle}>
+                {clientTasks.filter((t) => t.status !== "completed").length} open · {clientTasks.length} total
+              </h3>
+              <Button size="sm" iconLeft="plus" onClick={taskModal.open}>
+                Add Task
+              </Button>
+            </div>
+            <ul className={p.taskList}>
+              {clientTasks.map((t) => {
+                const done = t.status === "completed";
+                return (
+                  <li key={t.id} className={p.taskItem}>
+                    <button
+                      type="button"
+                      className={p.taskCheck}
+                      data-done={done}
+                      onClick={() => taskStore.toggleTask(t.id)}
+                      aria-label={done ? "Mark incomplete" : "Mark complete"}
+                    >
+                      {done && <Icon name="check" size={12} weight={3} />}
+                    </button>
+                    <span className={p.taskLabel} data-done={done}>
+                      {t.title}
+                    </span>
+                    {t.projectId && (
+                      <button
+                        type="button"
+                        onClick={() => navigate(`/projects/${t.projectId}`)}
+                        style={{ border: 0, background: "transparent", font: "var(--t-meta)", color: "var(--muted)", cursor: "pointer" }}
+                      >
+                        {projects.find((pr) => pr.id === t.projectId)?.name}
+                      </button>
+                    )}
+                    {t.dueDate && <span className={p.taskDue}>{formatDate(t.dueDate)}</span>}
+                  </li>
+                );
+              })}
+            </ul>
+          </Card>
+        )}
       </TabPanel>
 
       <TabPanel when="notes" value={tab}>
@@ -395,6 +448,11 @@ export function ClientDetailPage() {
         open={paymentModal.isOpen}
         onClose={paymentModal.close}
         prefill={{ clientId: client.id }}
+      />
+      <TaskFormModal
+        open={taskModal.isOpen}
+        onClose={taskModal.close}
+        prefill={{ clientId: client.id, projectId: activeProject?.id }}
       />
     </>
   );

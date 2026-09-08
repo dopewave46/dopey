@@ -48,13 +48,27 @@ src/
 - Routes are registered in `src/routes.tsx`; every page renders inside `AppShell`.
 - Nav order is locked in `src/config/navigation.ts` (Prompt 03 §1).
 - The live clock is `Asia/Kolkata`, updates every second — `useClock()` / `<Clock>`.
-- Actions whose behaviour lands later use `<StubActionButton>` (toasts, never fakes data).
+- Every "Add X" action opens the module's ONE shared modal (TaskFormModal, LeadFormModal,
+  NewProjectModal, InvoiceFormModal, RecordPaymentModal, AmcFormModal) — never a duplicate form.
 - All money via `formatCurrency()`, all dates via `formatDate()` — never inline `Intl`.
 - New shared UI goes in `components/ui` and must use only design tokens.
 
-## Status
+## Status — frontend complete (P03–P08)
 
-- ✅ P01 spec · P02 design system · P03 shell · P04 Dashboard · P05 CRM + Leads · P06 Projects · **P07 Finance + Analytics**
+- ✅ P01 spec · P02 design system · P03 shell · P04 Dashboard · P05 CRM + Leads · P06 Projects · P07 Finance + Analytics · **P08 Tasks + AMC**
+- P08: `taskStore` (`useTasks`) owns ALL tasks — moved out of projectStore. Seed `src/data/sampleTasks.ts`,
+  selectors `src/services/taskSelectors.ts` (buckets today/upcoming/overdue/completed, grouping).
+  `amcStore` (`useAmc`) + `src/data/sampleAmc.ts` + `amcSelectors.ts` (status derived from renewalDate).
+  Routes `/tasks`, `/amc`, `/amc/:id` (nav item now `to:/amc`, `/maintenance` redirects). Shared
+  `tasks/TaskFormModal` used by /tasks, Dashboard QuickActions, Project + Client Tasks tabs.
+  `tasks/TaskDrawer` (lightweight edit/delete). `amc/AmcFormModal`.
+  Notifications now LIVE: `useLiveNotifications` + `notificationSelectors.deriveNotifications()`
+  merges sample events with derived AMC-renewal / overdue-invoice / overdue-task notices; bell +
+  `/notifications` page navigate on click.
+  Dashboard QuickActions (Add Lead/Task/Payment) + TodayTasksCard now all use real shared stores —
+  no `StubActionButton`/`PlaceholderModule` left (both deleted). Deleted `pages/MaintenancePage.tsx`,
+  `components/projects/AddProjectTaskModal.tsx`. Added `AmcTask` interface to types.ts.
+- **Every page now shares one cross-linked mock dataset. Next: backend (P09–P11).**
 - P07: **`src/services/financeStore.ts`** (`useFinance`) is the ONE money source — invoices,
   payments, expenses. Seed `src/data/sampleFinance.ts`, selectors `src/services/financeSelectors.ts`
   (invoiceDisplayStatus derives overdue/pending; revenueSummary; clientFinance; projectFinance;

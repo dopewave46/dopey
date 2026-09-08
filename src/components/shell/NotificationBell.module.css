@@ -159,9 +159,14 @@
   text-align: center;
   background: var(--surface-2);
 }
-.footer a {
+.footer a,
+.viewAll {
   font: var(--t-meta);
   font-weight: 600;
+  color: var(--crimson);
+  background: transparent;
+  border: 0;
+  cursor: pointer;
 }
 
 @keyframes panelIn {

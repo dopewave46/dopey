@@ -1,4 +1,4 @@
-import type { Activity, Project, ProjectStage, ProjectStatus, Task } from "@/services/types";
+import type { Activity, Project, ProjectStage, ProjectStatus } from "@/services/types";
 
 /**
  * ---------------------------------------------------------------------------
@@ -177,36 +177,6 @@ export const SAMPLE_PROJECTS: Project[] = SEEDS.map((seed) => {
 export const SAMPLE_PROJECT_STAGES: ProjectStage[] = SEEDS.flatMap((seed) =>
   seedStages(seed.id, seed.status),
 );
-
-const task = (
-  id: string,
-  projectId: string,
-  title: string,
-  done: boolean,
-  dueOffset?: number,
-): Task => ({
-  id,
-  title,
-  projectId,
-  priority: "medium",
-  status: done ? "completed" : "todo",
-  dueDate: dueOffset !== undefined ? days(dueOffset) : undefined,
-  completedAt: done ? days(-2) : undefined,
-  createdAt: days(-15),
-  updatedAt: days(-2),
-});
-
-export const SAMPLE_PROJECT_TASKS: Task[] = [
-  task("ptask-01", "proj-01", "Build case-study CMS collection", true, -3),
-  task("ptask-02", "proj-01", "Wire up Calendly embed on contact page", false, 2),
-  task("ptask-03", "proj-01", "Chase client for 3 case-study write-ups", false, 1),
-  task("ptask-04", "proj-01", "Cross-browser QA on the work page", false, 6),
-  task("ptask-05", "proj-02", "Apply homepage revision 2 feedback", false, 0),
-  task("ptask-06", "proj-02", "Final content pass before launch", false, 2),
-  task("ptask-07", "proj-03", "Get DNS access from client", false, 0),
-  task("ptask-08", "proj-03", "Set up redirects from old URLs", true, -1),
-  task("ptask-09", "proj-06", "Draft the menu data model with staff", false, 5),
-];
 
 export const SAMPLE_PROJECT_ACTIVITIES: Activity[] = [
   {

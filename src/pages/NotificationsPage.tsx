@@ -1,11 +1,13 @@
 import { useMemo, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon, type IconName } from "@/components/icons/Icon";
-import { SAMPLE_NOTIFICATIONS } from "@/data/sampleNotifications";
-import type { AppNotification, NotificationType } from "@/services/types";
+import { useLiveNotifications } from "@/hooks/useLiveNotifications";
+import { notificationHref } from "@/services/notificationSelectors";
+import type { NotificationType } from "@/services/types";
 import { formatRelativeTime } from "@/utils/format";
 import styles from "./NotificationsPage.module.css";
 
@@ -21,8 +23,10 @@ const TYPE_META: Record<NotificationType, { icon: IconName; tone: string }> = {
 };
 
 export function NotificationsPage() {
-  const [items, setItems] = useState<AppNotification[]>(SAMPLE_NOTIFICATIONS);
-  const unread = useMemo(() => items.filter((n) => !n.isRead).length, [items]);
+  const navigate = useNavigate();
+  const items = useLiveNotifications();
+  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const unread = useMemo(() => items.filter((n) => !readIds.has(n.id)).length, [items, readIds]);
 
   return (
     <>
@@ -31,11 +35,7 @@ export function NotificationsPage() {
         description="Follow-ups, overdue items, renewals and payments — kept low-noise."
         actions={
           unread > 0 ? (
-            <Button
-              variant="secondary"
-              iconLeft="check"
-              onClick={() => setItems((l) => l.map((n) => ({ ...n, isRead: true })))}
-            >
+            <Button variant="secondary" iconLeft="check" onClick={() => setReadIds(new Set(items.map((n) => n.id)))}>
               Mark all read
             </Button>
           ) : undefined
@@ -49,19 +49,26 @@ export function NotificationsPage() {
           <ul className={styles.list}>
             {items.map((n) => {
               const meta = TYPE_META[n.type];
+              const isRead = readIds.has(n.id);
               return (
-                <li
-                  key={n.id}
-                  className={n.isRead ? styles.item : `${styles.item} ${styles.unread}`}
-                >
-                  <span className={`${styles.icon} ${styles[meta.tone]}`}>
-                    <Icon name={meta.icon} size={16} weight={1.9} />
-                  </span>
-                  <div className={styles.body}>
-                    <p className={styles.title}>{n.title}</p>
-                    <p className={styles.text}>{n.body}</p>
-                  </div>
-                  <time className={styles.time}>{formatRelativeTime(n.createdAt)}</time>
+                <li key={n.id} className={isRead ? styles.item : `${styles.item} ${styles.unread}`}>
+                  <button
+                    type="button"
+                    className={styles.rowBtn}
+                    onClick={() => {
+                      setReadIds((prev) => new Set(prev).add(n.id));
+                      navigate(notificationHref(n));
+                    }}
+                  >
+                    <span className={`${styles.icon} ${styles[meta.tone]}`}>
+                      <Icon name={meta.icon} size={16} weight={1.9} />
+                    </span>
+                    <div className={styles.body}>
+                      <p className={styles.title}>{n.title}</p>
+                      <p className={styles.text}>{n.body}</p>
+                    </div>
+                    <time className={styles.time}>{formatRelativeTime(n.createdAt)}</time>
+                  </button>
                 </li>
               );
             })}

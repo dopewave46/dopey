@@ -1,11 +1,10 @@
-import type { Project, ProjectStage, ProjectStatus, Task } from "./types";
+import type { Activity, Project, ProjectStage, ProjectStatus } from "./types";
 import {
   SAMPLE_PROJECTS,
   SAMPLE_PROJECT_STAGES,
-  SAMPLE_PROJECT_TASKS,
   SAMPLE_PROJECT_ACTIVITIES,
 } from "@/data/sampleProjects";
-import type { Activity } from "./types";
+import { taskStore } from "./taskStore";
 
 /**
  * In-memory Projects store — mirrors the shape of `crmStore` (Prompt 05).
@@ -17,14 +16,12 @@ import type { Activity } from "./types";
 interface ProjectState {
   projects: Project[];
   stages: ProjectStage[];
-  tasks: Task[];
   activities: Activity[];
 }
 
 let state: ProjectState = {
   projects: SAMPLE_PROJECTS,
   stages: SAMPLE_PROJECT_STAGES,
-  tasks: SAMPLE_PROJECT_TASKS,
   activities: SAMPLE_PROJECT_ACTIVITIES,
 };
 
@@ -218,8 +215,8 @@ export const projectStore = {
     set({
       projects: state.projects.filter((p) => p.id !== projectId),
       stages: state.stages.filter((s) => s.projectId !== projectId),
-      tasks: state.tasks.filter((t) => t.projectId !== projectId),
     });
+    taskStore.removeForProject(projectId);
     if (project) {
       pushActivity({
         type: "project_deleted",
@@ -228,36 +225,6 @@ export const projectStore = {
         summary: `Project deleted — ${project.name}`,
       });
     }
-  },
-
-  addTask(projectId: string, title: string, dueDate?: string): Task {
-    const task: Task = {
-      id: id("task"),
-      title,
-      projectId,
-      priority: "medium",
-      status: "todo",
-      dueDate,
-      createdAt: nowISO(),
-      updatedAt: nowISO(),
-    };
-    set({ tasks: [...state.tasks, task] });
-    return task;
-  },
-
-  toggleTask(taskId: string) {
-    set({
-      tasks: state.tasks.map((t) =>
-        t.id === taskId
-          ? {
-              ...t,
-              status: t.status === "completed" ? "todo" : "completed",
-              completedAt: t.status === "completed" ? undefined : nowISO(),
-              updatedAt: nowISO(),
-            }
-          : t,
-      ),
-    });
   },
 
   addNote(projectId: string, notes: string) {
