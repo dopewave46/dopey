@@ -9,15 +9,20 @@ import { EmptyState } from "@/components/ui/EmptyState";
 import { Button } from "@/components/ui/Button";
 import { ClientStatusBadge } from "@/components/crm/badges";
 import { useCrm } from "@/hooks/useCrm";
+import { useProjects } from "@/hooks/useProjects";
+import { useFinance } from "@/hooks/useFinance";
 import { useSimulatedLoad } from "@/hooks/useSimulatedLoad";
 import { CLIENT_STATUS_META } from "@/components/ui/StatusBadge";
-import { SAMPLE_CLIENT_CONTEXT } from "@/data/sampleCrm";
+import { projectsForClient, isActiveStatus } from "@/services/projectSelectors";
+import { clientFinance } from "@/services/financeSelectors";
 import type { Client } from "@/services/types";
 
 export function ClientsPage() {
   const navigate = useNavigate();
   const loading = useSimulatedLoad();
   const { clients } = useCrm();
+  const { projects } = useProjects();
+  const { invoices, payments } = useFinance();
 
   const [query, setQuery] = useState("");
   const [status, setStatus] = useState("");
@@ -29,18 +34,21 @@ export function ClientsPage() {
     [clients],
   );
 
+  const activeProjectFor = (clientId: string) =>
+    projectsForClient(projects, clientId).find((p) => isActiveStatus(p.status));
+
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
     return clients.filter((c) => {
       if (status && c.status !== status) return false;
       if (location && c.location !== location) return false;
-      const ctx = SAMPLE_CLIENT_CONTEXT[c.id] ?? {};
-      if (context === "active-project" && !ctx.activeProject) return false;
-      if (context === "overdue-invoice" && !ctx.overdueInvoice) return false;
+      if (context === "active-project" && !activeProjectFor(c.id)) return false;
+      if (context === "overdue-invoice" && !clientFinance(c.id, invoices, payments).hasOverdue) return false;
       if (!q) return true;
       return [c.name, c.company, c.email, c.phone].some((v) => v?.toLowerCase().includes(q));
     });
-  }, [clients, query, status, location, context]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [clients, projects, invoices, payments, query, status, location, context]);
 
   const columns: Column<Client>[] = [
     {
@@ -74,9 +82,9 @@ export function ClientsPage() {
       key: "project",
       header: "Active project",
       render: (c) => {
-        const ctx = SAMPLE_CLIENT_CONTEXT[c.id] ?? {};
-        return ctx.activeProject ? (
-          <span>{ctx.activeProject}</span>
+        const active = activeProjectFor(c.id);
+        return active ? (
+          <span>{active.name}</span>
         ) : (
           <span style={{ color: "var(--muted)" }}>—</span>
         );
@@ -147,9 +155,7 @@ export function ClientsPage() {
             onRowClick={(c) => navigate(`/clients/${c.id}`)}
             defaultSort={{ key: "company", dir: "asc" }}
             minWidth="760px"
-            emptyState={
-              <EmptyState compact icon="search" title="No clients match these filters" />
-            }
+            emptyState={<EmptyState compact icon="search" title="No clients match these filters" />}
           />
         </>
       )}

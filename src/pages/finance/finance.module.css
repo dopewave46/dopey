@@ -1,0 +1,115 @@
+.statRow {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: var(--s-4);
+  margin-bottom: var(--s-5);
+}
+
+.progressCard {
+  margin-bottom: var(--s-5);
+}
+.progressTop {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-3);
+  margin-bottom: 8px;
+}
+.progressFigure {
+  font: var(--t-section);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+.progressFigure small {
+  font: var(--t-meta);
+  color: var(--muted);
+  font-weight: 400;
+  margin-left: 4px;
+}
+.progressHint {
+  font: var(--t-meta);
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+.split2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s-4);
+  align-items: start;
+}
+
+.miniTable {
+  width: 100%;
+  border-collapse: collapse;
+  font: var(--t-body);
+}
+.miniTable th,
+.miniTable td {
+  padding: 9px 4px;
+  border-bottom: 1px solid var(--border);
+  text-align: right;
+}
+.miniTable th:first-child,
+.miniTable td:first-child {
+  text-align: left;
+}
+.miniTable thead th {
+  font: var(--t-meta);
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--muted);
+}
+.miniTable tbody tr:last-child td {
+  border-bottom: 0;
+}
+.miniTable td {
+  font-variant-numeric: tabular-nums;
+}
+
+.toolbarRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+  margin-bottom: var(--s-4);
+}
+
+.periodInline {
+  display: flex;
+  gap: var(--s-2);
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+.totalPill {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  font: var(--t-body);
+  color: var(--slate);
+}
+.totalPill b {
+  font: var(--t-section);
+  font-weight: 700;
+  color: var(--charcoal);
+  font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 1180px) {
+  .statRow {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+@media (max-width: 900px) {
+  .split2 {
+    grid-template-columns: 1fr;
+  }
+}
+@media (max-width: 560px) {
+  .statRow {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}

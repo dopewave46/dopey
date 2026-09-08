@@ -15,17 +15,23 @@ import { ClientFormModal } from "@/components/crm/ClientFormModal";
 import { ScheduleFollowUpModal } from "@/components/crm/ScheduleFollowUpModal";
 import { NewProjectModal } from "@/components/projects/NewProjectModal";
 import { ProjectStatusBadge } from "@/components/projects/badges";
+import { InvoiceStatusBadge } from "@/components/finance/badges";
+import { InvoiceFormModal } from "@/components/finance/InvoiceFormModal";
+import { RecordPaymentModal } from "@/components/finance/RecordPaymentModal";
 import { useCrm } from "@/hooks/useCrm";
 import { useProjects } from "@/hooks/useProjects";
+import { useFinance } from "@/hooks/useFinance";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useToast } from "@/components/feedback/ToastProvider";
 import { activitiesForEntity } from "@/services/crmSelectors";
 import { projectsForClient, isActiveStatus } from "@/services/projectSelectors";
+import { clientFinance, invoiceDisplayStatus } from "@/services/financeSelectors";
+import { METHOD_LABELS } from "@/services/financeStore";
 import { crmStore } from "@/services/crmStore";
 import { formatCurrency, formatDate } from "@/utils/format";
-import { SAMPLE_CLIENT_CONTEXT } from "@/data/sampleCrm";
 import s from "@/components/crm/detail.module.css";
 import cs from "./ClientDetailPage.module.css";
+import p from "@/pages/ProjectDetailPage.module.css";
 
 export function ClientDetailPage() {
   const { id = "" } = useParams();
@@ -45,15 +51,20 @@ export function ClientDetailPage() {
     () => (client ? activitiesForEntity(activities, client.id) : []),
     [activities, client],
   );
+  const { invoices, payments } = useFinance();
+  const invoiceModal = useDisclosure();
+  const paymentModal = useDisclosure();
+
   const clientProjects = useMemo(() => projectsForClient(projects, id), [projects, id]);
-  const activeProject = clientProjects.find((p) => isActiveStatus(p.status));
+  const activeProject = clientProjects.find((pr) => isActiveStatus(pr.status));
+  const fin = useMemo(() => clientFinance(id, invoices, payments), [id, invoices, payments]);
   const sourceLead = client?.sourceLeadId ? leads.find((l) => l.id === client.sourceLeadId) : undefined;
 
   const TABS = [
     { value: "overview", label: "Overview" },
     { value: "projects", label: "Projects", count: clientProjects.length },
-    { value: "invoices", label: "Invoices" },
-    { value: "payments", label: "Payments" },
+    { value: "invoices", label: "Invoices", count: fin.invoices.length },
+    { value: "payments", label: "Payments", count: fin.payments.length },
     { value: "tasks", label: "Tasks" },
     { value: "notes", label: "Notes" },
     { value: "activity", label: "Activity" },
@@ -74,8 +85,6 @@ export function ClientDetailPage() {
       </>
     );
   }
-
-  const ctx = SAMPLE_CLIENT_CONTEXT[client.id] ?? {};
 
   const saveNotes = () => {
     crmStore.updateClient(client.id, { notes: notesDraft.trim() || undefined });
@@ -180,14 +189,16 @@ export function ClientDetailPage() {
                     "—"
                   )}
                 </dd>
-                <dt>Invoices</dt>
-                <dd style={{ color: ctx.overdueInvoice ? "var(--error)" : "var(--slate)" }}>
-                  {ctx.overdueInvoice ? "1 overdue" : "None overdue"}
+                <dt>Invoiced</dt>
+                <dd>{formatCurrency(fin.invoiced)}</dd>
+                <dt>Received</dt>
+                <dd style={{ color: "var(--success)" }}>{formatCurrency(fin.received)}</dd>
+                <dt>Outstanding</dt>
+                <dd style={{ color: fin.hasOverdue ? "var(--error)" : "var(--slate)" }}>
+                  {formatCurrency(fin.pending)}
+                  {fin.hasOverdue ? " · overdue" : ""}
                 </dd>
               </dl>
-              <p style={{ font: "var(--t-meta)", color: "var(--muted)", marginTop: "var(--s-2)" }}>
-                Invoice data connects with Finance (Prompt 07).
-              </p>
             </Card>
           </div>
         </div>
@@ -235,21 +246,93 @@ export function ClientDetailPage() {
       </TabPanel>
 
       <TabPanel when="invoices" value={tab}>
-        <EmptyState
-          icon="finance"
-          title="Invoices"
-          description="Invoicing for this client connects with the Finance module (Prompt 07)."
-          action={<Button variant="secondary" onClick={() => navigate("/finance")}>Open Finance</Button>}
-        />
+        {fin.invoices.length === 0 ? (
+          <EmptyState
+            icon="finance"
+            title="No invoices yet"
+            description="Create an invoice for one of this client's projects."
+            action={
+              <Button iconLeft="plus" onClick={invoiceModal.open}>
+                Create Invoice
+              </Button>
+            }
+          />
+        ) : (
+          <Card padding="none">
+            <div className={p.tabHeader}>
+              <h3 className={p.tabTitle}>
+                {formatCurrency(fin.invoiced)} invoiced · {formatCurrency(fin.pending)} outstanding
+              </h3>
+              <Button size="sm" iconLeft="plus" onClick={invoiceModal.open}>
+                Create Invoice
+              </Button>
+            </div>
+            <ul className={p.financeRows}>
+              {fin.invoices.map((inv) => (
+                <li
+                  key={inv.id}
+                  className={p.financeRow}
+                  style={{ cursor: "pointer" }}
+                  onClick={() => navigate(`/finance/invoices/${inv.id}`)}
+                >
+                  <span className={p.financeRowIcon}>
+                    <Icon name="finance" size={14} weight={1.9} />
+                  </span>
+                  <span className={p.financeRowBody}>
+                    <span className={p.financeRowLabel}>{inv.invoiceNumber}</span>
+                    <span className={p.financeRowMeta}>
+                      Issued {formatDate(inv.issueDate)} · due {formatDate(inv.dueDate)}
+                    </span>
+                  </span>
+                  <span style={{ display: "flex", alignItems: "center", gap: "var(--s-3)" }}>
+                    <InvoiceStatusBadge status={invoiceDisplayStatus(inv, payments)} />
+                    <span className={p.financeRowAmount}>{formatCurrency(inv.amount)}</span>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
       </TabPanel>
 
       <TabPanel when="payments" value={tab}>
-        <EmptyState
-          icon="credit-card"
-          title="Payments"
-          description="Recorded payments for this client connect with the Finance module (Prompt 07)."
-          action={<Button variant="secondary" onClick={() => navigate("/finance")}>Open Finance</Button>}
-        />
+        {fin.payments.length === 0 ? (
+          <EmptyState
+            icon="credit-card"
+            title="No payments recorded yet"
+            description="Record a payment against one of this client's invoices."
+            action={
+              <Button iconLeft="plus" onClick={paymentModal.open}>
+                Record Payment
+              </Button>
+            }
+          />
+        ) : (
+          <Card padding="none">
+            <div className={p.tabHeader}>
+              <h3 className={p.tabTitle}>{formatCurrency(fin.received)} received</h3>
+              <Button size="sm" iconLeft="plus" onClick={paymentModal.open}>
+                Record Payment
+              </Button>
+            </div>
+            <ul className={p.financeRows}>
+              {fin.payments.map((pmt) => (
+                <li key={pmt.id} className={p.financeRow}>
+                  <span className={p.financeRowIcon} data-kind="Payment">
+                    <Icon name="check" size={14} weight={1.9} />
+                  </span>
+                  <span className={p.financeRowBody}>
+                    <span className={p.financeRowLabel}>{METHOD_LABELS[pmt.method]}</span>
+                    <span className={p.financeRowMeta}>
+                      {formatDate(pmt.paymentDate)} · {pmt.status === "completed" ? "Completed" : "Pending"}
+                    </span>
+                  </span>
+                  <span className={p.financeRowAmount}>{formatCurrency(pmt.amount)}</span>
+                </li>
+              ))}
+            </ul>
+          </Card>
+        )}
       </TabPanel>
 
       <TabPanel when="tasks" value={tab}>
@@ -301,6 +384,17 @@ export function ClientDetailPage() {
         onClose={projectModal.close}
         navigateOnCreate
         prefill={{ clientId: client.id, name: `${client.company || client.name} — Website` }}
+      />
+      <InvoiceFormModal
+        open={invoiceModal.isOpen}
+        onClose={invoiceModal.close}
+        prefill={{ clientId: client.id, projectId: activeProject?.id }}
+        navigateOnCreate
+      />
+      <RecordPaymentModal
+        open={paymentModal.isOpen}
+        onClose={paymentModal.close}
+        prefill={{ clientId: client.id }}
       />
     </>
   );

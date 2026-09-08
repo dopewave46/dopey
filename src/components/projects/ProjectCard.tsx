@@ -4,16 +4,19 @@ import { Icon } from "@/components/icons/Icon";
 import { cn } from "@/utils/cn";
 import { formatCurrency, formatDate } from "@/utils/format";
 import type { Project } from "@/services/types";
-import { ProjectStatusBadge, PaymentStatusBadge } from "./badges";
+import { ProjectStatusBadge } from "./badges";
+import { ProjectPaymentBadge } from "@/components/finance/badges";
 import styles from "./ProjectCard.module.css";
 
 export function ProjectCard({
   project,
   clientName,
+  payment,
   onClick,
 }: {
   project: Project;
   clientName: string;
+  payment: { status: "paid" | "partial" | "pending"; label: string };
   onClick: () => void;
 }) {
   const overdue =
@@ -57,7 +60,7 @@ export function ProjectCard({
       </div>
 
       <div className={styles.payRow}>
-        <PaymentStatusBadge project={project} />
+        <ProjectPaymentBadge status={payment.status} label={payment.label} />
       </div>
     </Card>
   );

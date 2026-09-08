@@ -11,7 +11,12 @@ import { FollowUpsPage } from "@/pages/FollowUpsPage";
 import { ProjectsPage } from "@/pages/ProjectsPage";
 import { ProjectDetailPage } from "@/pages/ProjectDetailPage";
 import { TasksPage } from "@/pages/TasksPage";
-import { FinancePage } from "@/pages/FinancePage";
+import { FinanceLayout } from "@/layouts/FinanceLayout";
+import { RevenuePage } from "@/pages/finance/RevenuePage";
+import { InvoicesPage } from "@/pages/finance/InvoicesPage";
+import { InvoiceDetailPage } from "@/pages/finance/InvoiceDetailPage";
+import { PaymentsPage } from "@/pages/finance/PaymentsPage";
+import { ExpensesPage } from "@/pages/finance/ExpensesPage";
 import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import { MaintenancePage } from "@/pages/MaintenancePage";
 import { SettingsPage } from "@/pages/SettingsPage";
@@ -35,7 +40,17 @@ export const router = createBrowserRouter([
       { path: "projects", element: <ProjectsPage /> },
       { path: "projects/:id", element: <ProjectDetailPage /> },
       { path: "tasks", element: <TasksPage /> },
-      { path: "finance", element: <FinancePage /> },
+      {
+        path: "finance",
+        element: <FinanceLayout />,
+        children: [
+          { index: true, element: <RevenuePage /> },
+          { path: "invoices", element: <InvoicesPage /> },
+          { path: "payments", element: <PaymentsPage /> },
+          { path: "expenses", element: <ExpensesPage /> },
+        ],
+      },
+      { path: "finance/invoices/:id", element: <InvoiceDetailPage /> },
       { path: "analytics", element: <AnalyticsPage /> },
       { path: "maintenance", element: <MaintenancePage /> },
       { path: "settings", element: <SettingsPage /> },

@@ -10,18 +10,22 @@ import { Icon } from "@/components/icons/Icon";
 import { LeadStageBadge, ClientStatusBadge } from "@/components/crm/badges";
 import { LeadFormModal } from "@/components/crm/LeadFormModal";
 import { useCrm } from "@/hooks/useCrm";
+import { useFinance } from "@/hooks/useFinance";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useSimulatedLoad } from "@/hooks/useSimulatedLoad";
 import { resolveFollowUps, daysOverdue } from "@/services/crmSelectors";
+import { clientFinance } from "@/services/financeSelectors";
 import { formatCurrency, formatDate, formatRelativeTime } from "@/utils/format";
-import { SAMPLE_CLIENT_CONTEXT } from "@/data/sampleCrm";
 import styles from "./CrmPage.module.css";
 
 export function CrmPage() {
   const navigate = useNavigate();
   const loading = useSimulatedLoad();
   const { leads, clients, followUps } = useCrm();
+  const { invoices, payments } = useFinance();
   const addLead = useDisclosure();
+
+  const clientHasOverdue = (clientId: string) => clientFinance(clientId, invoices, payments).hasOverdue;
 
   const recentLeads = useMemo(
     () =>
@@ -43,11 +47,11 @@ export function CrmPage() {
   const needsAttention = useMemo(
     () =>
       clients.filter((c) => {
-        const ctx = SAMPLE_CLIENT_CONTEXT[c.id] ?? {};
         const stale = Date.now() - new Date(c.updatedAt).getTime() > 45 * 86_400_000;
-        return ctx.overdueInvoice || c.status === "inactive" || stale;
+        return clientHasOverdue(c.id) || c.status === "inactive" || stale;
       }),
-    [clients],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [clients, invoices, payments],
   );
 
   return (
@@ -158,8 +162,7 @@ export function CrmPage() {
           ) : (
             <ul className={styles.list}>
               {needsAttention.map((c) => {
-                const ctx = SAMPLE_CLIENT_CONTEXT[c.id] ?? {};
-                const reason = ctx.overdueInvoice
+                const reason = clientHasOverdue(c.id)
                   ? "Overdue invoice"
                   : c.status === "inactive"
                     ? "Marked inactive"
@@ -178,7 +181,7 @@ export function CrmPage() {
               })}
             </ul>
           )}
-          <p className={styles.footNote}>Invoice status is placeholder until Finance connects (Prompt 07).</p>
+          <p className={styles.footNote}>Overdue invoices and stale contact drive this list.</p>
         </Card>
       </div>
 

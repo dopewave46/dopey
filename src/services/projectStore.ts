@@ -270,13 +270,9 @@ export const projectStore = {
     });
   },
 
-  recordPaymentPlaceholder(projectId: string, amount: number) {
-    const project = state.projects.find((p) => p.id === projectId);
-    pushActivity({
-      type: "payment_received",
-      entityType: "project",
-      entityId: projectId,
-      summary: `Payment recorded — ${project?.name ?? "project"} (₹${amount.toLocaleString("en-IN")})`,
-    });
+  /** Append a project activity from another module (e.g. Finance payments). */
+  noteActivity(projectId: string, type: string, summary: string) {
+    if (!state.projects.some((p) => p.id === projectId)) return;
+    pushActivity({ type, entityType: "project", entityId: projectId, summary });
   },
 };

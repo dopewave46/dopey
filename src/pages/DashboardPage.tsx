@@ -1,8 +1,11 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { Icon } from "@/components/icons/Icon";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { SkeletonCard } from "@/components/ui/Skeleton";
 import { useAsyncData } from "@/hooks/useAsyncData";
+import { useFinance } from "@/hooks/useFinance";
+import { revenueSummary, currentMonthProgress } from "@/services/financeSelectors";
+import { formatCurrency } from "@/utils/format";
 import { CURRENT_ADMIN } from "@/services/session";
 import { getDashboardData } from "@/data/sampleDashboard";
 import { GreetingHeader } from "@/components/dashboard/GreetingHeader";
@@ -18,7 +21,27 @@ import s from "@/components/dashboard/sections.module.css";
 
 export function DashboardPage() {
   const { data, loading, error, reload } = useAsyncData(getDashboardData);
+  const { invoices, payments, expenses } = useFinance();
   const [showNotice, setShowNotice] = useState(true);
+
+  // The Money section + Revenue/Pending metrics read from the Finance store
+  // (Prompt 07 §9) — one source of truth, never drifting from /finance.
+  const fin = useMemo(() => revenueSummary(invoices, payments, expenses, "12m"), [invoices, payments, expenses]);
+  const month = useMemo(() => currentMonthProgress(invoices, payments), [invoices, payments]);
+
+  const money = {
+    revenue: month.earned,
+    collected: month.received,
+    pending: fin.pending,
+    target: data?.money.target ?? 600000,
+  };
+  const metrics = (data?.metrics ?? []).map((m) => {
+    if (m.key === "revenue")
+      return { ...m, label: "Revenue (received)", value: formatCurrency(fin.received), support: "last 12 months" };
+    if (m.key === "pending")
+      return { ...m, label: "Pending Payments", value: formatCurrency(fin.pending), support: "invoiced, unpaid" };
+    return m;
+  });
 
   return (
     <>
@@ -58,11 +81,11 @@ export function DashboardPage() {
         </div>
       ) : (
         <>
-          <MetricCards metrics={data.metrics} />
+          <MetricCards metrics={metrics} />
 
           <div className={s.split}>
             <TodayOverviewCard today={data.today} />
-            <MoneyCard money={data.money} />
+            <MoneyCard money={money} />
           </div>
 
           <div className={s.full}>

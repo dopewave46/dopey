@@ -29,6 +29,16 @@ export function formatNumber(value: number): string {
   return new Intl.NumberFormat(LOCALE).format(value);
 }
 
+/** Short ₹ for chart axes: 250000 -> "₹2.5L", 8000 -> "₹8k", 0 -> "₹0". */
+export function formatCurrencyShort(value: number): string {
+  const abs = Math.abs(value);
+  const sign = value < 0 ? "-" : "";
+  if (abs >= 1e7) return `${sign}₹${(abs / 1e7).toFixed(abs % 1e7 === 0 ? 0 : 1)}Cr`;
+  if (abs >= 1e5) return `${sign}₹${(abs / 1e5).toFixed(abs % 1e5 === 0 ? 0 : 1)}L`;
+  if (abs >= 1e3) return `${sign}₹${Math.round(abs / 1e3)}k`;
+  return `${sign}₹${Math.round(abs)}`;
+}
+
 /** "7 Sep 2026" */
 export function formatDate(date: Date | string): string {
   const d = typeof date === "string" ? new Date(date) : date;

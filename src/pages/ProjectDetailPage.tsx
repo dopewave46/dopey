@@ -12,17 +12,21 @@ import { ActivityTimeline } from "@/components/ui/ActivityTimeline";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { Icon } from "@/components/icons/Icon";
 import { NewProjectModal } from "@/components/projects/NewProjectModal";
-import { RecordPaymentModal } from "@/components/projects/RecordPaymentModal";
+import { RecordPaymentModal } from "@/components/finance/RecordPaymentModal";
+import { InvoiceFormModal } from "@/components/finance/InvoiceFormModal";
+import { InvoiceStatusBadge } from "@/components/finance/badges";
 import { AddProjectTaskModal } from "@/components/projects/AddProjectTaskModal";
 import { ProjectStageStrip } from "@/components/projects/ProjectStageStrip";
 import { ProjectTimeline } from "@/components/projects/ProjectTimeline";
 import { ProjectStatusBadge } from "@/components/projects/badges";
 import { useProjects } from "@/hooks/useProjects";
 import { useCrm } from "@/hooks/useCrm";
+import { useFinance } from "@/hooks/useFinance";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useToast } from "@/components/feedback/ToastProvider";
 import { PROJECT_BOARD_ORDER, PROJECT_STATUS_LABELS } from "@/services/projectStore";
-import { financeFor, paymentStatusFor } from "@/services/projectSelectors";
+import { METHOD_LABELS } from "@/services/financeStore";
+import { projectFinance, invoiceDisplayStatus } from "@/services/financeSelectors";
 import { formatCurrency, formatDate } from "@/utils/format";
 import type { ProjectStatus } from "@/services/types";
 import s from "@/components/crm/detail.module.css";
@@ -43,12 +47,14 @@ export function ProjectDetailPage() {
   const toast = useToast();
   const { projects, stages, tasks, activities, store } = useProjects();
   const { clients } = useCrm();
+  const { invoices, payments } = useFinance();
 
   const project = projects.find((pr) => pr.id === id);
   const [tab, setTab] = useState("overview");
   const editModal = useDisclosure();
   const deleteConfirm = useDisclosure();
   const paymentModal = useDisclosure();
+  const invoiceModal = useDisclosure();
   const taskModal = useDisclosure();
   const [reqDraft, setReqDraft] = useState(project?.requirements ?? "");
   const [notesDraft, setNotesDraft] = useState(project?.notes ?? "");
@@ -87,8 +93,7 @@ export function ProjectDetailPage() {
 
   const client = clients.find((c) => c.id === project.clientId);
   const clientLabel = client?.company || client?.name || "Unknown client";
-  const finance = financeFor(project.id);
-  const pay = paymentStatusFor(project);
+  const fin = projectFinance(project.id, project.value, invoices, payments);
 
   return (
     <>
@@ -179,16 +184,16 @@ export function ProjectDetailPage() {
             <Card>
               <CardHeader title="Payment" />
               <div className={p.payStat}>
-                <span className={p.payValue}>{formatCurrency(pay.paid)}</span>
+                <span className={p.payValue}>{formatCurrency(fin.paid)}</span>
                 <span className={p.payOf}>of {formatCurrency(project.value)}</span>
               </div>
               <ProgressBar
-                value={project.value > 0 ? (pay.paid / project.value) * 100 : 0}
+                value={project.value > 0 ? (fin.paid / project.value) * 100 : 0}
                 size="sm"
-                tone={pay.status === "paid" ? "success" : "crimson"}
+                tone={fin.status === "paid" ? "success" : "crimson"}
                 label="Paid vs total"
               />
-              <p className={p.payHint}>{formatCurrency(pay.pending)} outstanding · {pay.label}</p>
+              <p className={p.payHint}>{formatCurrency(fin.pending)} outstanding · {fin.label}</p>
             </Card>
           </div>
         </div>
@@ -259,9 +264,14 @@ export function ProjectDetailPage() {
               <CardHeader
                 title="Money"
                 action={
-                  <Button size="sm" variant="secondary" iconLeft="plus" onClick={paymentModal.open}>
-                    Record Payment
-                  </Button>
+                  <div style={{ display: "flex", gap: "var(--s-2)" }}>
+                    <Button size="sm" variant="secondary" iconLeft="plus" onClick={invoiceModal.open}>
+                      Invoice
+                    </Button>
+                    <Button size="sm" iconLeft="plus" onClick={paymentModal.open}>
+                      Record Payment
+                    </Button>
+                  </div>
                 }
               />
               <div className={p.financeStats}>
@@ -272,50 +282,82 @@ export function ProjectDetailPage() {
                 <div>
                   <span className={p.financeK}>Paid</span>
                   <span className={p.financeV} style={{ color: "var(--success)" }}>
-                    {formatCurrency(pay.paid)}
+                    {formatCurrency(fin.paid)}
                   </span>
                 </div>
                 <div>
                   <span className={p.financeK}>Pending</span>
                   <span className={p.financeV} style={{ color: "var(--warning)" }}>
-                    {formatCurrency(pay.pending)}
+                    {formatCurrency(fin.pending)}
                   </span>
                 </div>
               </div>
               <ProgressBar
-                value={project.value > 0 ? (pay.paid / project.value) * 100 : 0}
+                value={project.value > 0 ? (fin.paid / project.value) * 100 : 0}
                 label="Paid vs total"
-                tone={pay.status === "paid" ? "success" : "crimson"}
+                tone={fin.status === "paid" ? "success" : "crimson"}
               />
             </Card>
 
             <Card padding="none">
               <div className={p.tabHeader}>
-                <h3 className={p.tabTitle}>Invoices &amp; payments</h3>
+                <h3 className={p.tabTitle}>Invoices</h3>
               </div>
-              {finance.rows.length === 0 ? (
-                <EmptyState compact icon="finance" title="Nothing recorded yet" />
+              {fin.invoices.length === 0 ? (
+                <EmptyState compact icon="finance" title="No invoices for this project yet" />
               ) : (
                 <ul className={p.financeRows}>
-                  {finance.rows.map((row) => (
-                    <li key={row.id} className={p.financeRow}>
-                      <span className={p.financeRowIcon} data-kind={row.kind}>
-                        <Icon name={row.kind === "Payment" ? "check" : "finance"} size={14} weight={1.9} />
+                  {fin.invoices.map((inv) => (
+                    <li
+                      key={inv.id}
+                      className={p.financeRow}
+                      style={{ cursor: "pointer" }}
+                      onClick={() => navigate(`/finance/invoices/${inv.id}`)}
+                    >
+                      <span className={p.financeRowIcon}>
+                        <Icon name="finance" size={14} weight={1.9} />
                       </span>
                       <span className={p.financeRowBody}>
-                        <span className={p.financeRowLabel}>{row.label}</span>
+                        <span className={p.financeRowLabel}>{inv.invoiceNumber}</span>
                         <span className={p.financeRowMeta}>
-                          {row.kind} · {formatDate(row.date)} · {row.status}
+                          Issued {formatDate(inv.issueDate)} · due {formatDate(inv.dueDate)}
                         </span>
                       </span>
-                      <span className={p.financeRowAmount}>{formatCurrency(row.amount)}</span>
+                      <span style={{ display: "flex", alignItems: "center", gap: "var(--s-3)" }}>
+                        <InvoiceStatusBadge status={invoiceDisplayStatus(inv, payments)} />
+                        <span className={p.financeRowAmount}>{formatCurrency(inv.amount)}</span>
+                      </span>
                     </li>
                   ))}
                 </ul>
               )}
-              <p className={p.footNote}>
-                Placeholder data. Real invoicing and payments connect with Finance (Prompt 07).
-              </p>
+            </Card>
+
+            <Card padding="none">
+              <div className={p.tabHeader}>
+                <h3 className={p.tabTitle}>Payments</h3>
+              </div>
+              {fin.payments.length === 0 ? (
+                <EmptyState compact icon="credit-card" title="No payments recorded yet" />
+              ) : (
+                <ul className={p.financeRows}>
+                  {fin.payments.map((pmt) => (
+                    <li key={pmt.id} className={p.financeRow}>
+                      <span className={p.financeRowIcon} data-kind="Payment">
+                        <Icon name="check" size={14} weight={1.9} />
+                      </span>
+                      <span className={p.financeRowBody}>
+                        <span className={p.financeRowLabel}>{METHOD_LABELS[pmt.method]}</span>
+                        <span className={p.financeRowMeta}>
+                          {formatDate(pmt.paymentDate)} · {pmt.status === "completed" ? "Completed" : "Pending"}
+                          {pmt.reference ? ` · ${pmt.reference}` : ""}
+                        </span>
+                      </span>
+                      <span className={p.financeRowAmount}>{formatCurrency(pmt.amount)}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </Card>
         </div>
       </TabPanel>
@@ -404,8 +446,13 @@ export function ProjectDetailPage() {
       <RecordPaymentModal
         open={paymentModal.isOpen}
         onClose={paymentModal.close}
-        project={project}
-        pending={pay.pending}
+        prefill={{ projectId: project.id }}
+      />
+      <InvoiceFormModal
+        open={invoiceModal.isOpen}
+        onClose={invoiceModal.close}
+        prefill={{ projectId: project.id }}
+        navigateOnCreate
       />
       <AddProjectTaskModal open={taskModal.isOpen} onClose={taskModal.close} projectId={project.id} />
       <ConfirmDialog

@@ -49,9 +49,10 @@ export const LEAD_STAGE_META: Record<string, { label: string; tone: BadgeTone }>
   lost: { label: "Lost", tone: "neutral" },
 };
 
+// Tones locked by Prompt 07 §8.
 export const INVOICE_STATUS_META: Record<string, { label: string; tone: BadgeTone }> = {
   draft: { label: "Draft", tone: "neutral" },
-  sent: { label: "Sent", tone: "progress" },
+  sent: { label: "Sent", tone: "info" },
   pending: { label: "Pending", tone: "warning" },
   paid: { label: "Paid", tone: "success" },
   overdue: { label: "Overdue", tone: "error" },

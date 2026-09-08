@@ -33,6 +33,7 @@ export type IconName =
   | "arrow-down"
   | "arrow-right"
   | "credit-card"
+  | "wallet"
   | "trending-up"
   | "more"
   | "external-link"
@@ -163,6 +164,13 @@ const PATHS: Record<IconName, JSX.Element> = {
     <>
       <rect x="3" y="5" width="18" height="14" rx="2.5" />
       <path d="M3 10h18" />
+    </>
+  ),
+  wallet: (
+    <>
+      <path d="M4 7a2 2 0 0 1 2-2h11a2 2 0 0 1 2 2v1" />
+      <path d="M4 7v10a2 2 0 0 0 2 2h13a1 1 0 0 0 1-1v-3" />
+      <path d="M20 11h-4a2 2 0 0 0 0 4h4a1 1 0 0 0 1-1v-2a1 1 0 0 0-1-1z" />
     </>
   ),
   "trending-up": <path d="M4 17l6-6 4 4 6-7M15 8h5v5" />,

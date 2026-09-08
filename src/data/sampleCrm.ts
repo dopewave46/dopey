@@ -139,6 +139,23 @@ export const SAMPLE_LEADS: Lead[] = [
     updatedAt: daysAgoISO(6),
   },
   {
+    id: "lead-08",
+    name: "Meera Kadam",
+    business: "Kadam & Co.",
+    phone: "+91 98330 55219",
+    email: "meera@kadamandco.in",
+    location: "Dadar, Mumbai",
+    source: "Referral",
+    serviceRequired: "Landing page",
+    requirements: "Refresh the existing landing page — new copy, enquiry form.",
+    estimatedValue: 65000,
+    stage: "won",
+    convertedClientId: "client-03",
+    notes: "Won — quick decision after the proposal call.",
+    createdAt: daysAgoISO(44),
+    updatedAt: daysAgoISO(38),
+  },
+  {
     id: "lead-07",
     name: "Nikita Sharma",
     business: "Bloom Dental",
@@ -195,7 +212,7 @@ export const SAMPLE_CLIENTS: Client[] = [
     location: "Dadar, Mumbai",
     website: "kadamandco.in",
     status: "active",
-    sourceLeadId: undefined,
+    sourceLeadId: "lead-08",
     notes: "Boutique law firm. Landing page refresh nearly done.",
     createdAt: daysAgoISO(38),
     updatedAt: daysAgoISO(3),
@@ -215,23 +232,6 @@ export const SAMPLE_CLIENTS: Client[] = [
     updatedAt: daysAgoISO(90),
   },
 ];
-
-/**
- * Cross-module context for the client list/profile — this data is OWNED by the
- * Projects (Prompt 06) and Finance (Prompt 07) modules. Kept here as a labelled
- * placeholder so the Clients table can show project/invoice context now.
- */
-export interface ClientContext {
-  activeProject?: string;
-  overdueInvoice?: boolean;
-}
-
-export const SAMPLE_CLIENT_CONTEXT: Record<string, ClientContext> = {
-  "client-01": { activeProject: "Brand website", overdueInvoice: true },
-  "client-02": { activeProject: "Website + booking", overdueInvoice: false },
-  "client-03": { activeProject: "Landing page refresh", overdueInvoice: false },
-  "client-04": { activeProject: undefined, overdueInvoice: false },
-};
 
 export const SAMPLE_FOLLOW_UPS: FollowUp[] = [
   {

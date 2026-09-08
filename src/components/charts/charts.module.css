@@ -1,0 +1,74 @@
+.wrap {
+  width: 100%;
+}
+
+.svg {
+  width: 100%;
+  height: auto;
+  display: block;
+  overflow: visible;
+}
+
+.grid {
+  stroke: var(--border);
+  stroke-width: 1;
+}
+.axisLabel {
+  font: var(--t-meta);
+  font-size: 10px;
+  fill: var(--muted);
+}
+.xLabel {
+  font: var(--t-meta);
+  font-size: 10px;
+  fill: var(--slate);
+  text-anchor: middle;
+}
+.endpoint {
+  fill: var(--crimson);
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3);
+  margin-top: var(--s-3);
+  font: var(--t-meta);
+  color: var(--slate);
+}
+.legend i {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  display: inline-block;
+  margin-right: 5px;
+  vertical-align: middle;
+}
+.legend b {
+  font-weight: 700;
+  color: var(--charcoal);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ChartCard */
+.card h4 {
+  font: var(--t-card);
+}
+.card .sub {
+  font: var(--t-meta);
+  color: var(--muted);
+  margin-top: 2px;
+}
+.card .headline {
+  font: var(--t-display);
+  font-size: 26px;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  margin: var(--s-3) 0 var(--s-4);
+}
+.card .headline small {
+  font: var(--t-meta);
+  font-weight: 600;
+  color: var(--slate);
+  margin-left: 6px;
+}

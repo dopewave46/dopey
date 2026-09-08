@@ -54,7 +54,18 @@ src/
 
 ## Status
 
-- ✅ P01 spec · P02 design system · P03 shell · P04 Dashboard · P05 CRM + Leads · **P06 Projects**
+- ✅ P01 spec · P02 design system · P03 shell · P04 Dashboard · P05 CRM + Leads · P06 Projects · **P07 Finance + Analytics**
+- P07: **`src/services/financeStore.ts`** (`useFinance`) is the ONE money source — invoices,
+  payments, expenses. Seed `src/data/sampleFinance.ts`, selectors `src/services/financeSelectors.ts`
+  (invoiceDisplayStatus derives overdue/pending; revenueSummary; clientFinance; projectFinance;
+  moneyByMonth). `src/layouts/FinanceLayout.tsx` + tabbed pages `src/pages/finance/*`
+  (Revenue/Invoices/Payments/Expenses) + standalone `/finance/invoices/:id`. `AnalyticsPage`
+  rewritten with `src/components/charts/*` (hand-rolled SVG BarChart/LineChart/ChartCard, no lib).
+  Shared `finance/RecordPaymentModal` + `finance/InvoiceFormModal` used by Payments page, Dashboard
+  GlobalActions, Project + Client detail. `SAMPLE_PROJECT_FINANCE` and `SAMPLE_CLIENT_CONTEXT`
+  deleted — Project Finance tab, ProjectCard payment chip, Client Invoices/Payments tabs, Dashboard
+  Money + Revenue/Pending metrics all read from `financeStore`. Deleted `pages/FinancePage.tsx`,
+  `components/projects/RecordPaymentModal.tsx`.
 - P06: `src/services/projectStore.ts` (in-memory, `useProjects`), seed `src/data/sampleProjects.ts`,
   selectors `src/services/projectSelectors.ts`. Routes `/projects` (card grid + status board toggle)
   and `/projects/:id` (tabs: Overview/Tasks/Timeline/Finance/Links/Notes). `NewProjectModal` is the

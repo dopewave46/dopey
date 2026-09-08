@@ -13,6 +13,8 @@ import { ProjectCard } from "@/components/projects/ProjectCard";
 import { ProjectBoard } from "@/components/projects/ProjectBoard";
 import { useProjects } from "@/hooks/useProjects";
 import { useCrm } from "@/hooks/useCrm";
+import { useFinance } from "@/hooks/useFinance";
+import { projectFinance } from "@/services/financeSelectors";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useSimulatedLoad } from "@/hooks/useSimulatedLoad";
 import { PROJECT_BOARD_ORDER, PROJECT_STATUS_LABELS } from "@/services/projectStore";
@@ -26,6 +28,7 @@ export function ProjectsPage() {
   const loading = useSimulatedLoad();
   const { projects, store } = useProjects();
   const { clients } = useCrm();
+  const { invoices, payments } = useFinance();
 
   const [view, setView] = useState<View>("grid");
   const [query, setQuery] = useState("");
@@ -131,14 +134,18 @@ export function ProjectsPage() {
               <EmptyState compact icon="search" title="No projects match these filters" />
             ) : (
               <div className={styles.grid}>
-                {filtered.map((project) => (
-                  <ProjectCard
-                    key={project.id}
-                    project={project}
-                    clientName={clientName(project.clientId)}
-                    onClick={() => navigate(`/projects/${project.id}`)}
-                  />
-                ))}
+                {filtered.map((project) => {
+                  const fin = projectFinance(project.id, project.value, invoices, payments);
+                  return (
+                    <ProjectCard
+                      key={project.id}
+                      project={project}
+                      clientName={clientName(project.clientId)}
+                      payment={{ status: fin.status, label: fin.label }}
+                      onClick={() => navigate(`/projects/${project.id}`)}
+                    />
+                  );
+                })}
               </div>
             )
           ) : (
