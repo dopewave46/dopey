@@ -1,7 +1,10 @@
-# DopeOrca OS — Backend (Prompt 09)
+# DopeOrca OS — Backend
 
-The API + auth + business-logic layer that Prompt 11 will connect the frontend to.
-**The frontend still runs on its own mock data** — this server exists and works on its own.
+The API + auth + business-logic layer, on Express + TypeScript, backed by
+PostgreSQL (Drizzle). The frontend at the repo root talks to it over HTTP.
+
+**Deploying?** See [`../DEPLOYMENT.md`](../DEPLOYMENT.md) for the full production setup
+(managed Postgres + host env vars + CORS lock-down + the verify checklist).
 
 ## Stack — and why
 
@@ -119,7 +122,11 @@ on state-changing requests · rate limits on auth (20/15min) and search · `helm
 
 ## Env
 
-See `.env.example`. `.env` is git-ignored. `DATABASE_URL` is only used from Prompt 10.
+See `.env.example` (no real secrets). `.env` is git-ignored. In **production**
+(`NODE_ENV=production`) the server refuses to start with an unsafe config — a
+dev `SESSION_SECRET`, a placeholder `ADMIN_PASSWORD`, `CORS_ORIGIN` still on
+localhost, `USE_EMBEDDED_PG` not `false`, or a localhost `DATABASE_URL`
+(`src/config/env.ts`).
 
 ## Layout
 

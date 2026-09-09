@@ -5,9 +5,9 @@ import { SearchPalette } from "./SearchPalette";
 import styles from "./GlobalSearch.module.css";
 
 /**
- * Header search entry point. The input is a button that opens the palette;
- * Cmd/Ctrl+K opens it from anywhere. Wiring to real search across
- * Clients / Leads / Projects / Tasks / Invoices happens in a later prompt.
+ * Header search entry point. The trigger is a button that opens the palette;
+ * Cmd/Ctrl+K opens it from anywhere. The palette searches Clients / Leads /
+ * Projects / Tasks / Invoices via `GET /api/search`.
  */
 export function GlobalSearch() {
   const palette = useDisclosure();

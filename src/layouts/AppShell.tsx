@@ -16,7 +16,7 @@ import styles from "./AppShell.module.css";
 const COLLAPSE_KEY = "orca.sidebar.collapsed";
 
 export function AppShell() {
-  const { status: authStatus } = useAuth();
+  const { status: authStatus, refresh } = useAuth();
   const isDesktop = useMediaQuery(BREAKPOINTS.desktop);
   const { pathname } = useLocation();
   const mobileNav = useDisclosure();
@@ -61,6 +61,17 @@ export function AppShell() {
   }
   if (authStatus === "unauthed") {
     return <Navigate to="/login" replace state={{ from: pathname }} />;
+  }
+  if (authStatus === "offline") {
+    return (
+      <div className={styles.boot}>
+        <ErrorState
+          title="Can't reach the server"
+          message="The DopeOrca OS backend isn't responding. Check your connection and try again."
+          onRetry={() => void refresh()}
+        />
+      </div>
+    );
   }
 
   return (

@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "DopeOrca OS backend — API, auth, business logic (Prompt 09). Stub data layer until Prompt 10.",
+  "description": "DopeOrca OS backend — API, auth, business logic, PostgreSQL (Drizzle).",
   "engines": {
     "node": ">=20"
   },
@@ -15,12 +15,20 @@
     "db:up": "tsx src/db/up.ts",
     "db:generate": "drizzle-kit generate",
     "db:migrate": "tsx src/db/migrate.ts",
+    "db:migrate:prod": "node dist/db/migrate.js",
     "db:seed": "tsx src/db/seed-db.ts",
     "db:reset": "tsx src/db/reset.ts",
     "db:studio": "drizzle-kit studio",
+    "release": "npm run build && npm run db:migrate:prod",
     "seed:print": "tsx src/repositories/seed.ts"
   },
   "dependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "@types/cookie-parser": "^1.4.8",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.21",
+    "@types/node": "^22.7.5",
+    "@types/pg": "^8.23.1",
     "bcryptjs": "^2.4.3",
     "cookie-parser": "^1.4.7",
     "cors": "^2.8.5",
@@ -32,19 +40,13 @@
     "pg": "^8.23.0",
     "pino": "^9.5.0",
     "pino-http": "^10.3.0",
+    "typescript": "^5.6.3",
     "zod": "^3.23.8"
   },
   "devDependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/cookie-parser": "^1.4.8",
-    "@types/cors": "^2.8.17",
-    "@types/express": "^4.17.21",
-    "@types/node": "^22.7.5",
-    "@types/pg": "^8.23.1",
     "drizzle-kit": "^0.31.10",
     "embedded-postgres": "^18.4.0-beta.17",
     "pino-pretty": "^13.0.0",
-    "tsx": "^4.19.1",
-    "typescript": "^5.6.3"
+    "tsx": "^4.19.1"
   }
 }

@@ -22,9 +22,16 @@ Two packages: the frontend at the repo root, the backend in **`server/`** (its o
 
 | | |
 |---|---|
-| `npm run dev` | Vite dev server (port 5173) |
+| `npm run dev` | Vite dev server (port 5173/5174) |
 | `npm run build` | `tsc --noEmit` then `vite build` |
 | `npm run typecheck` | types only |
+
+## Deploying
+
+See **[`DEPLOYMENT.md`](DEPLOYMENT.md)** — managed Postgres (Neon) + backend (Render) + frontend
+(Vercel). `server/render.yaml` and `vercel.json` capture the host config. Production `CORS_ORIGIN`
+must be the exact frontend domain; the backend refuses to boot with an unsafe prod config
+(`server/src/config/env.ts`).
 
 ## Locked references — do not deviate
 
@@ -64,9 +71,18 @@ src/
 - All money via `formatCurrency()`, all dates via `formatDate()` — never inline `Intl`.
 - New shared UI goes in `components/ui` and must use only design tokens.
 
-## Status — full stack wired (P01–P11)
+## Status — COMPLETE (P01–P12), deploy-ready
 
-- ✅ P01 spec · P02 design system · P03 shell · P04 Dashboard · P05 CRM · P06 Projects · P07 Finance/Analytics · P08 Tasks/AMC · P09 backend · P10 Postgres · **P11 full integration**
+- ✅ P01–P08 frontend · P09 backend · P10 Postgres · P11 integration · **P12 QA + security + deployment prep**
+- **P12** — full QA pass (security 20/20, forms/validation, CRUD + RESTRICT, deep links, responsive at 4 breakpoints,
+  error/empty/401 states, 0 console errors across all routes). Hardening: `server/src/config/env.ts` refuses to boot in
+  `NODE_ENV=production` with a dev `SESSION_SECRET`/placeholder password/localhost `CORS_ORIGIN`/`USE_EMBEDDED_PG≠false`;
+  CORS localhost-any-port is dev-only (comma-list `CORS_ORIGIN` supported). `auth.tsx` gained an `"offline"` status →
+  AppShell shows a "Can't reach the server" + Retry screen on backend outage (not a bounce to login). React Router v7
+  future flags set (silences dev console warnings). Login page CSS moved onto design tokens (`--t-section`, `--sh-md`,
+  `--t-card`); skeleton shimmer tokenised. `DEPLOYMENT.md` + `server/render.yaml` + `vercel.json` added;
+  `server/package.json` has `db:migrate:prod` / `release`. **Deploy itself is the user's step** (needs Neon/Render/Vercel
+  accounts) — everything is prepared and documented.
 - **P11 — frontend ↔ backend ↔ DB, end to end.** `src/data/sample*` DELETED. `src/services/api.ts` is
   the one HTTP client: `credentials:'include'`, auto `X-CSRF-Token` from the `orca_csrf` cookie on
   unsafe methods, unwraps `{data}`/`{error}`, 401 → registered handler → `/login`. `src/services/auth.tsx`

@@ -12,9 +12,32 @@
 import net from "node:net";
 import { existsSync } from "node:fs";
 import path from "node:path";
-import type EmbeddedPostgres from "embedded-postgres";
 import { env, isProd } from "../config/env.js";
 import { logger } from "../utils/logger.js";
+
+/**
+ * Minimal local types for `embedded-postgres`. The package is a devDependency
+ * and is NOT installed in production, so it must not be referenced in a way the
+ * type-checker needs to resolve — the real module is only pulled in via a
+ * runtime dynamic import, guarded by `USE_EMBEDDED_PG`.
+ */
+interface EmbeddedPgOptions {
+  databaseDir: string;
+  user: string;
+  password: string;
+  port: number;
+  persistent?: boolean;
+  initdbFlags?: string[];
+  onLog?: (msg: string) => void;
+  onError?: (msg: unknown) => void;
+}
+interface EmbeddedPgInstance {
+  initialise(): Promise<void>;
+  start(): Promise<void>;
+  stop(): Promise<void>;
+  createDatabase(name: string): Promise<void>;
+}
+type EmbeddedPgCtor = new (opts: EmbeddedPgOptions) => EmbeddedPgInstance;
 
 const DATA_DIR = path.resolve(process.cwd(), ".pgdata");
 const PARSED = new URL(env.DATABASE_URL);
@@ -39,7 +62,7 @@ function portInUse(port: number): Promise<boolean> {
   });
 }
 
-let instance: EmbeddedPostgres | null = null;
+let instance: EmbeddedPgInstance | null = null;
 
 /**
  * Ensure a Postgres is listening on the configured port. If one is already
@@ -53,9 +76,12 @@ export async function ensurePostgres(): Promise<void> {
     return;
   }
 
-  // Dynamic import: `embedded-postgres` is a devDependency and must never be
-  // required by a production `npm start` (which uses an external DATABASE_URL).
-  const { default: EmbeddedPostgres } = await import("embedded-postgres");
+  // Dynamic import via an indirect specifier: `embedded-postgres` is a
+  // devDependency and is absent in production, so `tsc` must not try to resolve
+  // it. This line is unreachable in prod (guarded by USE_EMBEDDED_PG above).
+  const moduleName: string = "embedded-postgres";
+  const mod = (await import(moduleName)) as { default: EmbeddedPgCtor };
+  const EmbeddedPostgres = mod.default;
 
   const pg = new EmbeddedPostgres({
     databaseDir: DATA_DIR,

@@ -44,6 +44,35 @@ export const env = parsed.data;
 export const isProd = env.NODE_ENV === "production";
 export const isTest = env.NODE_ENV === "test";
 
+/* ------------------------------------------------------------------ */
+/* Production safety checks (Prompt 12 §9, §13)                        */
+/* ------------------------------------------------------------------ */
+
+if (isProd) {
+  const problems: string[] = [];
+  const DEV_DEFAULTS = [
+    "replace-me-with-a-long-random-string",
+    "dev-only-local-secret-not-for-production-use-1234",
+    "8p9OVBcfv-yomzpEWjeBdMHcQi6Obc54EWisT8lOM79Q21SLWgVHKbr6fKSOx7qP",
+  ];
+  if (DEV_DEFAULTS.includes(env.SESSION_SECRET))
+    problems.push("SESSION_SECRET is a known dev value — set a fresh random secret in production.");
+  if (env.SESSION_SECRET.length < 32)
+    problems.push("SESSION_SECRET should be at least 32 characters in production.");
+  if (env.ADMIN_PASSWORD === "change-this-on-first-login")
+    problems.push("ADMIN_PASSWORD is still the placeholder.");
+  if (env.CORS_ORIGIN.includes("localhost") || env.CORS_ORIGIN.includes("127.0.0.1"))
+    problems.push("CORS_ORIGIN still points at localhost — set it to the exact deployed frontend domain.");
+  if (env.USE_EMBEDDED_PG)
+    problems.push("USE_EMBEDDED_PG must be false in production — point DATABASE_URL at a managed Postgres.");
+  if (/localhost|127\.0\.0\.1/.test(env.DATABASE_URL))
+    problems.push("DATABASE_URL points at localhost.");
+  if (problems.length) {
+    console.error("Refusing to start in production with unsafe configuration:\n - " + problems.join("\n - "));
+    process.exit(1);
+  }
+}
+
 /** Explicitly-allowed CORS origins (comma-separated `CORS_ORIGIN`). */
 export const corsOrigins = env.CORS_ORIGIN.split(",")
   .map((o) => o.trim())

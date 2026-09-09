@@ -12,8 +12,8 @@
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-card);
-  box-shadow: var(--shadow-card);
-  padding: var(--s-7) var(--s-6);
+  box-shadow: var(--sh-md);
+  padding: var(--s-8) var(--s-6);
 }
 
 .brand {
@@ -26,23 +26,21 @@
 .glyph {
   display: grid;
   place-items: center;
-  width: 34px;
-  height: 34px;
+  width: 32px;
+  height: 32px;
   border-radius: var(--r-tag);
   background: var(--crimson);
-  color: #fff;
+  color: var(--surface);
 }
 
 .wordmark {
-  font-weight: 650;
-  font-size: 15px;
+  font: var(--t-card);
   letter-spacing: 0.01em;
   color: var(--charcoal);
 }
 
 .title {
-  font-size: 20px;
-  font-weight: 650;
+  font: var(--t-section);
   color: var(--charcoal);
 }
 
@@ -66,4 +64,12 @@
   margin: 0;
   color: var(--error);
   font: var(--t-meta);
+}
+
+@media (max-width: 420px) {
+  .card {
+    padding: var(--s-6) var(--s-5);
+    box-shadow: none;
+    border: 0;
+  }
 }

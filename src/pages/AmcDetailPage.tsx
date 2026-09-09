@@ -180,12 +180,14 @@ export function AmcDetailPage() {
 
         <div className={s.side}>
           <Card>
-            <CardHeader title="Renewal history" />
+            <CardHeader title="Renewal" />
             <p className={s.prose}>
               Started {formatDate(amc.startDate)}. Next renewal {formatDate(amc.renewalDate)}.
             </p>
             <p style={{ font: "var(--t-meta)", color: "var(--muted)", marginTop: "var(--s-2)" }}>
-              A full renewal ledger is added with the backend (Prompt 09).
+              {amc.hostingRenewalDate
+                ? `Hosting renews ${formatDate(amc.hostingRenewalDate)}.`
+                : "No separate hosting renewal date set."}
             </p>
           </Card>
         </div>

@@ -12,15 +12,18 @@ import { api, ApiError, setUnauthorizedHandler } from "./api";
 import { setAgency, setCurrentAdmin } from "./session";
 
 /**
- * Authentication + agency identity (Prompt 11 §3).
+ * Authentication + agency identity.
  *
- * On mount we call `GET /api/auth/me`; a success means the httpOnly session
- * cookie is valid and we render the app, a 401 means we show the login screen.
- * The API client's central 401 handler (any expired call, anywhere) flips this
- * context back to "unauthed" so the guard redirects — never a blank page.
+ * On mount we call `GET /api/auth/me`:
+ *  - success  → render the app ("authed")
+ *  - 401      → show the login screen ("unauthed")
+ *  - network  → show a "can't reach the server" screen with Retry ("offline") —
+ *               the session may be perfectly valid, so we don't log the user out.
+ * The API client's central 401 handler flips this back to "unauthed" from
+ * anywhere — never a blank page.
  */
 
-export type AuthStatus = "loading" | "authed" | "unauthed";
+export type AuthStatus = "loading" | "authed" | "unauthed" | "offline";
 
 interface AuthContextValue {
   status: AuthStatus;
@@ -76,13 +79,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   // Initial session probe.
   useEffect(() => {
     let cancelled = false;
-    applySession().catch((err) => {
+    applySession().catch((err: unknown) => {
       if (cancelled) return;
-      if (err instanceof ApiError && err.code !== "unauthorized" && err.code !== "network_error") {
-        // Unexpected — still fall back to login rather than trapping the user.
-        console.error("auth probe failed", err);
+      if (err instanceof ApiError && err.code === "network_error") {
+        setStatus("offline");
+      } else {
+        clearSession();
       }
-      clearSession();
     });
     return () => {
       cancelled = true;
@@ -92,8 +95,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = useCallback(
     async (email: string, password: string) => {
       await api.post<{ user: User }>("/auth/login", { email, password });
-      setStatus("loading");
-      await applySession();
+      try {
+        await applySession();
+      } catch {
+        // Login succeeded (cookie set) but the follow-up probe failed — treat as
+        // authed and let the shell's own retry handle transient errors.
+        setStatus("authed");
+      }
     },
     [applySession],
   );
@@ -107,9 +115,19 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearSession();
   }, [clearSession]);
 
+  const refresh = useCallback(async () => {
+    setStatus("loading");
+    try {
+      await applySession();
+    } catch (err: unknown) {
+      if (err instanceof ApiError && err.code === "network_error") setStatus("offline");
+      else clearSession();
+    }
+  }, [applySession, clearSession]);
+
   const value = useMemo<AuthContextValue>(
-    () => ({ status, user, agency, login, logout, refresh: applySession }),
-    [status, user, agency, login, logout, applySession],
+    () => ({ status, user, agency, login, logout, refresh }),
+    [status, user, agency, login, logout, refresh],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

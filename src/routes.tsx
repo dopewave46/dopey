@@ -63,4 +63,9 @@ export const router = createBrowserRouter([
       { path: "*", element: <NotFoundPage /> },
     ],
   },
-]);
+], {
+  // Opt in to React Router v7 splat-path resolution now (silences the dev
+  // future-flag warning; this app has one top-level splat route so there is no
+  // behavioural change). `v7_startTransition` is set on <RouterProvider>.
+  future: { v7_relativeSplatPath: true },
+});
