@@ -6,6 +6,7 @@ import { Input, Select, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/feedback/ToastProvider";
 import { useCrm } from "@/hooks/useCrm";
 import { projectStore, PROJECT_STATUS_LABELS, PROJECT_BOARD_ORDER } from "@/services/projectStore";
+import { apiErrorMessage } from "@/utils/apiError";
 import type { Project, ProjectStatus } from "@/services/types";
 import styles from "@/components/crm/LeadFormModal.module.css";
 
@@ -107,7 +108,9 @@ export function NewProjectModal({
     setErrors((e) => ({ ...e, clientId: undefined }));
   };
 
-  const submit = (e: FormEvent) => {
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const next: typeof errors = {};
     if (!v.clientId) next.clientId = "Pick the client this project is for.";
@@ -129,17 +132,24 @@ export function NewProjectModal({
       notes: v.notes.trim() || undefined,
     };
 
-    if (isEdit && project) {
-      projectStore.updateProject(project.id, payload);
-      toast.success("Project updated", payload.name);
-      onSaved?.({ ...project, ...payload });
-    } else {
-      const created = projectStore.addProject(payload);
-      toast.success("Project created", `${payload.name} · ${PROJECT_STATUS_LABELS[created.status]}`);
-      onSaved?.(created);
-      if (navigateOnCreate) navigate(`/projects/${created.id}`);
+    setSaving(true);
+    try {
+      if (isEdit && project) {
+        const updated = await projectStore.updateProject(project.id, payload);
+        toast.success("Project updated", updated.name);
+        onSaved?.(updated);
+      } else {
+        const created = await projectStore.addProject(payload);
+        toast.success("Project created", `${created.name} · ${PROJECT_STATUS_LABELS[created.status]}`);
+        onSaved?.(created);
+        if (navigateOnCreate) navigate(`/projects/${created.id}`);
+      }
+      onClose();
+    } catch (err) {
+      toast.error("Couldn't save the project", apiErrorMessage(err));
+    } finally {
+      setSaving(false);
     }
-    onClose();
   };
 
   return (
@@ -159,7 +169,7 @@ export function NewProjectModal({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" form="project-form">
+          <Button type="submit" form="project-form" loading={saving} disabled={saving}>
             {isEdit ? "Save changes" : "Create project"}
           </Button>
         </>

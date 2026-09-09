@@ -1,18 +1,19 @@
 import type { Activity, Client, FollowUp, Lead, LeadStage } from "./types";
-import {
-  SAMPLE_ACTIVITIES,
-  SAMPLE_CLIENTS,
-  SAMPLE_FOLLOW_UPS,
-  SAMPLE_LEADS,
-} from "@/data/sampleCrm";
+import { api } from "./api";
+import { notificationStore } from "./notificationStore";
+import type { StoreStatus } from "./storeStatus";
 
 /**
- * In-memory CRM store.
+ * CRM store (Prompt 11) — API-backed.
  *
- * This stands in for the backend until Prompt 09–11. Every mutation replaces
- * the relevant slice immutably and notifies subscribers, so the Leads list,
- * the pipeline board, the CRM hub and the Follow-ups page all stay in sync
- * within a session. Reads/writes are async-shaped to mirror the eventual API.
+ * `hydrate()` loads leads / clients / follow-ups from the backend once, on app
+ * boot. Every mutation goes through the API and then refreshes the affected
+ * slice, so the Leads list, the pipeline board, the CRM hub, the Follow-ups
+ * page and the client profile all stay consistent with PostgreSQL — the one
+ * source of truth (Prompt 09 service layer).
+ *
+ * The subscribe / getSnapshot surface is unchanged, so `useCrm()` and every
+ * component that reads it keep working as before.
  */
 
 interface CrmState {
@@ -20,13 +21,17 @@ interface CrmState {
   clients: Client[];
   followUps: FollowUp[];
   activities: Activity[];
+  status: StoreStatus;
+  error: string | null;
 }
 
 let state: CrmState = {
-  leads: SAMPLE_LEADS,
-  clients: SAMPLE_CLIENTS,
-  followUps: SAMPLE_FOLLOW_UPS,
-  activities: SAMPLE_ACTIVITIES,
+  leads: [],
+  clients: [],
+  followUps: [],
+  activities: [],
+  status: "idle",
+  error: null,
 };
 
 const listeners = new Set<() => void>();
@@ -36,17 +41,11 @@ function set(next: Partial<CrmState>) {
   listeners.forEach((l) => l());
 }
 
-function nowISO() {
-  return new Date().toISOString();
-}
-
-function id(prefix: string) {
-  return `${prefix}-${Math.random().toString(36).slice(2, 9)}`;
-}
-
-function pushActivity(entry: Omit<Activity, "id" | "createdAt">) {
+function mergeActivities(incoming: Activity[]) {
+  const byId = new Map(state.activities.map((a) => [a.id, a]));
+  for (const a of incoming) byId.set(a.id, a);
   set({
-    activities: [{ ...entry, id: id("act"), createdAt: nowISO() }, ...state.activities],
+    activities: [...byId.values()].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)),
   });
 }
 
@@ -59,144 +58,130 @@ export const crmStore = {
     return state;
   },
 
+  async hydrate(): Promise<void> {
+    if (state.status === "loading") return;
+    set({ status: "loading", error: null });
+    try {
+      const [leads, clients, followUps] = await Promise.all([
+        api.get<Lead[]>("/leads"),
+        api.get<Client[]>("/clients"),
+        api.get<{ flat: FollowUp[] }>("/follow-ups").then((r) => r.flat),
+      ]);
+      set({ leads, clients, followUps, status: "ready", error: null });
+    } catch (err) {
+      set({ status: "error", error: err instanceof Error ? err.message : "Failed to load CRM data" });
+    }
+  },
+
+  async reloadLeads() {
+    set({ leads: await api.get<Lead[]>("/leads") });
+  },
+  async reloadClients() {
+    set({ clients: await api.get<Client[]>("/clients") });
+  },
+  async reloadFollowUps() {
+    set({ followUps: await api.get<{ flat: FollowUp[] }>("/follow-ups").then((r) => r.flat) });
+  },
+
   /* ---------------- Leads ---------------- */
 
-  addLead(input: Omit<Lead, "id" | "createdAt" | "updatedAt">): Lead {
-    const lead: Lead = { ...input, id: id("lead"), createdAt: nowISO(), updatedAt: nowISO() };
+  async addLead(input: Omit<Lead, "id" | "createdAt" | "updatedAt">): Promise<Lead> {
+    const lead = await api.post<Lead>("/leads", input);
     set({ leads: [lead, ...state.leads] });
-    pushActivity({
-      type: "lead_created",
-      entityType: "lead",
-      entityId: lead.id,
-      summary: `Lead added — ${lead.business || lead.name}${lead.source ? ` (${lead.source})` : ""}`,
-    });
-    if (lead.followUpDate) {
-      crmStore.addFollowUp({
-        parentType: "lead",
-        parentId: lead.id,
-        dueDate: lead.followUpDate,
-        note: `Follow up with ${lead.business || lead.name}`,
-      });
-    }
+    // The backend auto-creates a follow-up when followUpDate is set, and fires
+    // a "new lead" notification.
+    if (lead.followUpDate) await crmStore.reloadFollowUps();
+    void notificationStore.refresh();
     return lead;
   },
 
-  updateLead(leadId: string, patch: Partial<Lead>) {
-    set({
-      leads: state.leads.map((l) =>
-        l.id === leadId ? { ...l, ...patch, updatedAt: nowISO() } : l,
-      ),
-    });
+  async updateLead(leadId: string, patch: Partial<Lead>): Promise<Lead> {
+    const updated = await api.patch<Lead>(`/leads/${leadId}`, patch);
+    set({ leads: state.leads.map((l) => (l.id === leadId ? updated : l)) });
+    return updated;
   },
 
-  setLeadStage(leadId: string, stage: LeadStage) {
+  async setLeadStage(leadId: string, stage: LeadStage): Promise<void> {
     const lead = state.leads.find((l) => l.id === leadId);
     if (!lead || lead.stage === stage) return;
-    crmStore.updateLead(leadId, { stage });
-    pushActivity({
-      type: "stage_changed",
-      entityType: "lead",
-      entityId: leadId,
-      summary: `${lead.business || lead.name} moved to ${stageLabel(stage)}`,
-    });
+    const updated = await api.post<Lead>(`/leads/${leadId}/stage`, { stage });
+    set({ leads: state.leads.map((l) => (l.id === leadId ? updated : l)) });
   },
 
-  archiveLead(leadId: string) {
-    crmStore.updateLead(leadId, { archivedAt: nowISO() });
-    const lead = state.leads.find((l) => l.id === leadId);
-    pushActivity({
-      type: "lead_archived",
-      entityType: "lead",
-      entityId: leadId,
-      summary: `Lead archived — ${lead?.business || lead?.name || "lead"}`,
-    });
+  async archiveLead(leadId: string): Promise<void> {
+    const updated = await api.post<Lead>(`/leads/${leadId}/archive`, {});
+    set({ leads: state.leads.map((l) => (l.id === leadId ? updated : l)) });
   },
 
-  logLeadNote(leadId: string, note: string) {
-    const lead = state.leads.find((l) => l.id === leadId);
-    if (!lead) return;
-    crmStore.updateLead(leadId, { updatedAt: nowISO() });
-    pushActivity({
-      type: "note_logged",
-      entityType: "lead",
-      entityId: leadId,
-      summary: `Call logged — ${lead.business || lead.name}: ${note}`,
-    });
+  async logLeadNote(leadId: string, note: string): Promise<void> {
+    const updated = await api.post<Lead>(`/leads/${leadId}/log-call`, { note });
+    set({ leads: state.leads.map((l) => (l.id === leadId ? updated : l)) });
+    await crmStore.loadActivitiesFor("lead", leadId);
+  },
+
+  async deleteLead(leadId: string): Promise<void> {
+    await api.delete(`/leads/${leadId}`);
+    set({ leads: state.leads.filter((l) => l.id !== leadId) });
   },
 
   /* ---------------- Clients ---------------- */
 
-  addClient(input: Omit<Client, "id" | "createdAt" | "updatedAt">): Client {
-    const client: Client = { ...input, id: id("client"), createdAt: nowISO(), updatedAt: nowISO() };
+  async addClient(
+    input: Omit<Client, "id" | "createdAt" | "updatedAt">,
+  ): Promise<Client> {
+    const client = await api.post<Client>("/clients", input);
     set({ clients: [client, ...state.clients] });
-    pushActivity({
-      type: "client_created",
-      entityType: "client",
-      entityId: client.id,
-      summary: `Client added — ${client.company || client.name}`,
-    });
     return client;
   },
 
-  updateClient(clientId: string, patch: Partial<Client>) {
-    set({
-      clients: state.clients.map((c) =>
-        c.id === clientId ? { ...c, ...patch, updatedAt: nowISO() } : c,
-      ),
-    });
+  async updateClient(clientId: string, patch: Partial<Client>): Promise<Client> {
+    const updated = await api.patch<Client>(`/clients/${clientId}`, patch);
+    set({ clients: state.clients.map((c) => (c.id === clientId ? updated : c)) });
+    return updated;
   },
 
   /**
-   * Lead → Client conversion. The lead is preserved and linked; it never gets
-   * deleted (spec Section H). Returns the new client id.
+   * Lead → Client conversion via the backend endpoint (Prompt 09
+   * conversion.service): the lead is marked Won + linked, never deleted, and
+   * the client is pre-filled from lead data server-side. Returns the new client.
    */
-  convertLeadToClient(
+  async convertLeadToClient(
     leadId: string,
     clientDraft: Omit<Client, "id" | "createdAt" | "updatedAt" | "sourceLeadId" | "status">,
-  ): Client {
-    const client = crmStore.addClient({
-      ...clientDraft,
-      status: "active",
-      sourceLeadId: leadId,
-    });
-    set({
-      leads: state.leads.map((l) =>
-        l.id === leadId
-          ? { ...l, stage: "won", convertedClientId: client.id, updatedAt: nowISO() }
-          : l,
-      ),
-    });
-    pushActivity({
-      type: "lead_converted",
-      entityType: "client",
-      entityId: client.id,
-      summary: `Lead converted — ${client.company || client.name} is now a client`,
-    });
+  ): Promise<Client> {
+    const { client } = await api.post<{ client: Client; project?: unknown }>(
+      `/leads/${leadId}/convert`,
+      { client: clientDraft },
+    );
+    await Promise.all([crmStore.reloadLeads(), crmStore.reloadClients()]);
     return client;
   },
 
   /* ---------------- Follow-ups ---------------- */
 
-  addFollowUp(input: Omit<FollowUp, "id" | "status"> & { status?: FollowUp["status"] }): FollowUp {
-    const followUp: FollowUp = { ...input, id: id("fu"), status: input.status ?? "pending" };
+  async addFollowUp(
+    input: Omit<FollowUp, "id" | "status"> & { status?: FollowUp["status"] },
+  ): Promise<FollowUp> {
+    const followUp = await api.post<FollowUp>("/follow-ups", input);
     set({ followUps: [...state.followUps, followUp] });
     return followUp;
   },
 
-  completeFollowUp(followUpId: string) {
-    set({
-      followUps: state.followUps.map((f) =>
-        f.id === followUpId ? { ...f, status: "done", completedAt: nowISO() } : f,
-      ),
-    });
+  async completeFollowUp(followUpId: string): Promise<void> {
+    const updated = await api.post<FollowUp>(`/follow-ups/${followUpId}/complete`, {});
+    set({ followUps: state.followUps.map((f) => (f.id === followUpId ? updated : f)) });
   },
 
-  rescheduleFollowUp(followUpId: string, dueDate: string) {
-    set({
-      followUps: state.followUps.map((f) =>
-        f.id === followUpId ? { ...f, dueDate, status: "pending", completedAt: undefined } : f,
-      ),
-    });
+  async rescheduleFollowUp(followUpId: string, dueDate: string): Promise<void> {
+    const updated = await api.post<FollowUp>(`/follow-ups/${followUpId}/reschedule`, { dueDate });
+    set({ followUps: state.followUps.map((f) => (f.id === followUpId ? updated : f)) });
+  },
+
+  /* ---------------- Activity (per-entity, loaded on demand) ---------------- */
+
+  async loadActivitiesFor(entityType: "lead" | "client", entityId: string): Promise<void> {
+    const rows = await api.get<Activity[]>(`/${entityType}s/${entityId}/activity`);
+    mergeActivities(rows);
   },
 };
 
@@ -224,3 +209,24 @@ export const LEAD_STAGE_ORDER: LeadStage[] = [
   "won",
   "lost",
 ];
+
+/** Lead form option lists (moved here from the removed sample data). */
+export const LEAD_SOURCES = [
+  "Referral",
+  "Instagram",
+  "Website enquiry",
+  "Cold outreach",
+  "WhatsApp",
+  "Networking event",
+  "Repeat client",
+] as const;
+
+export const SERVICES = [
+  "Business website",
+  "E-commerce store",
+  "Landing page",
+  "Website redesign",
+  "Web app",
+  "Branding + website",
+  "Maintenance / AMC",
+] as const;

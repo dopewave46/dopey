@@ -1,17 +1,22 @@
 import type { BadgeTone } from "@/components/ui/StatusBadge";
-import type { Amc } from "./types";
+import type { Amc, AmcStatus } from "./types";
 
-/** Default renewal lead-time (days) — configurable in Settings later. */
+export type { AmcStatus };
+
+/** Default renewal lead-time (days) — matches the backend default (Settings). */
 export const RENEWAL_LEAD_DAYS = 30;
-
-export type AmcStatus = "active" | "expiring_soon" | "expired";
 
 export function daysUntil(iso: string): number {
   return Math.ceil((new Date(iso).getTime() - Date.now()) / 86_400_000);
 }
 
-/** Derived — never stored (Prompt 08 §4). */
+/**
+ * Contract status. The backend derives this (Prompt 08 §4 / Prompt 11 §8) and
+ * sends it on every AMC — we use that. The local computation is only a fallback
+ * for an AMC object that hasn't been through the API (it uses identical logic).
+ */
 export function amcStatus(amc: Amc, leadDays = RENEWAL_LEAD_DAYS): AmcStatus {
+  if (amc.status) return amc.status;
   const d = daysUntil(amc.renewalDate);
   if (d < 0) return "expired";
   if (d <= leadDays) return "expiring_soon";

@@ -18,6 +18,8 @@ const schema = z.object({
   ADMIN_PASSWORD: z.string().min(8).default("change-this-on-first-login"),
   ADMIN_NAME: z.string().default("Shahid Khan"),
 
+  // One origin, or a comma-separated list. In development, any localhost /
+  // 127.0.0.1 port is also allowed (Vite hops ports when one is busy).
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
   DATABASE_URL: z.string().default("postgres://postgres:postgres@localhost:5432/dopeorca_os"),
   // Dev only: run a local embedded Postgres (no Docker/install). Ignored in production.
@@ -41,3 +43,17 @@ if (!parsed.success) {
 export const env = parsed.data;
 export const isProd = env.NODE_ENV === "production";
 export const isTest = env.NODE_ENV === "test";
+
+/** Explicitly-allowed CORS origins (comma-separated `CORS_ORIGIN`). */
+export const corsOrigins = env.CORS_ORIGIN.split(",")
+  .map((o) => o.trim())
+  .filter(Boolean);
+
+const LOCALHOST_ORIGIN = /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/;
+
+/** Whether a browser Origin header should be allowed. */
+export function isAllowedOrigin(origin: string): boolean {
+  if (corsOrigins.includes(origin)) return true;
+  if (!isProd && LOCALHOST_ORIGIN.test(origin)) return true;
+  return false;
+}

@@ -1,12 +1,10 @@
-import { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card } from "@/components/ui/Card";
 import { Button } from "@/components/ui/Button";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon, type IconName } from "@/components/icons/Icon";
-import { useLiveNotifications } from "@/hooks/useLiveNotifications";
-import { notificationHref } from "@/services/notificationSelectors";
+import { useNotifications, notificationHref } from "@/services/notificationStore";
 import type { NotificationType } from "@/services/types";
 import { formatRelativeTime } from "@/utils/format";
 import styles from "./NotificationsPage.module.css";
@@ -24,9 +22,7 @@ const TYPE_META: Record<NotificationType, { icon: IconName; tone: string }> = {
 
 export function NotificationsPage() {
   const navigate = useNavigate();
-  const items = useLiveNotifications();
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
-  const unread = useMemo(() => items.filter((n) => !readIds.has(n.id)).length, [items, readIds]);
+  const { items, unread, markRead, markAllRead } = useNotifications();
 
   return (
     <>
@@ -35,7 +31,7 @@ export function NotificationsPage() {
         description="Follow-ups, overdue items, renewals and payments — kept low-noise."
         actions={
           unread > 0 ? (
-            <Button variant="secondary" iconLeft="check" onClick={() => setReadIds(new Set(items.map((n) => n.id)))}>
+            <Button variant="secondary" iconLeft="check" onClick={() => void markAllRead()}>
               Mark all read
             </Button>
           ) : undefined
@@ -48,15 +44,15 @@ export function NotificationsPage() {
         ) : (
           <ul className={styles.list}>
             {items.map((n) => {
-              const meta = TYPE_META[n.type];
-              const isRead = readIds.has(n.id);
+              const meta = TYPE_META[n.type] ?? TYPE_META.client_update;
+              const isRead = n.isRead;
               return (
                 <li key={n.id} className={isRead ? styles.item : `${styles.item} ${styles.unread}`}>
                   <button
                     type="button"
                     className={styles.rowBtn}
                     onClick={() => {
-                      setReadIds((prev) => new Set(prev).add(n.id));
+                      void markRead(n.id);
                       navigate(notificationHref(n));
                     }}
                   >

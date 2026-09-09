@@ -3,6 +3,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input } from "@/components/ui/Field";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { apiErrorMessage } from "@/utils/apiError";
 import { crmStore } from "@/services/crmStore";
 import type { FollowUp } from "@/services/types";
 
@@ -20,12 +21,16 @@ export function RescheduleModal({
     if (followUp) setDate(followUp.dueDate.slice(0, 10));
   }, [followUp]);
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!followUp || !date) return;
-    crmStore.rescheduleFollowUp(followUp.id, new Date(date).toISOString());
-    toast.success("Follow-up rescheduled", new Date(date).toLocaleDateString("en-IN"));
-    onClose();
+    try {
+      await crmStore.rescheduleFollowUp(followUp.id, new Date(date).toISOString());
+      toast.success("Follow-up rescheduled", new Date(date).toLocaleDateString("en-IN"));
+      onClose();
+    } catch (err) {
+      toast.error("Couldn't reschedule", apiErrorMessage(err));
+    }
   };
 
   return (

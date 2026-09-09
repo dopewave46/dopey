@@ -23,8 +23,10 @@ import { AmcDetailPage } from "@/pages/AmcDetailPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { NotificationsPage } from "@/pages/NotificationsPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
+import { LoginPage } from "@/pages/LoginPage";
 
 export const router = createBrowserRouter([
+  { path: "/login", element: <LoginPage /> },
   {
     path: "/",
     element: <AppShell />,

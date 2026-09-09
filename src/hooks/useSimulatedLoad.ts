@@ -1,15 +1,11 @@
-import { useEffect, useState } from "react";
+import { useAppData } from "@/services/hydration";
 
 /**
- * Briefly reports `loading: true` on mount so pages exercise their skeleton
- * states while the CRM store is still in-memory. A real data fetch replaces
- * this with `useAsyncData` in a later prompt.
+ * Prompt 11: reports whether the module stores are still doing their initial
+ * load from the API. Kept under the original name so the ~14 pages that call
+ * `const loading = useSimulatedLoad()` don't have to change — the skeleton they
+ * already render now tracks the real request.
  */
-export function useSimulatedLoad(ms = 400): boolean {
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    const timer = window.setTimeout(() => setLoading(false), ms);
-    return () => window.clearTimeout(timer);
-  }, [ms]);
-  return loading;
+export function useSimulatedLoad(): boolean {
+  return useAppData().loading;
 }

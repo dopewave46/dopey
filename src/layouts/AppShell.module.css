@@ -54,3 +54,32 @@
     padding: 16px 16px calc(72px + env(safe-area-inset-bottom, 0px));
   }
 }
+
+/* Session-probe splash (Prompt 11) */
+.boot {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background: var(--bg);
+}
+
+.bootMark {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--border-strong);
+  border-top-color: var(--crimson);
+  animation: bootSpin 0.7s linear infinite;
+}
+
+@keyframes bootSpin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bootMark {
+    animation-duration: 2s;
+  }
+}

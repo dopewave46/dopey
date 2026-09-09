@@ -3,7 +3,7 @@ import cookieParser from "cookie-parser";
 import cors from "cors";
 import helmet from "helmet";
 import { pinoHttp } from "pino-http";
-import { env, isProd } from "./config/env.js";
+import { isAllowedOrigin, isProd } from "./config/env.js";
 import { logger } from "./utils/logger.js";
 import { csrf } from "./middleware/csrf.js";
 import { errorHandler, notFoundHandler } from "./middleware/error-handler.js";
@@ -30,9 +30,14 @@ export function createApp(): express.Express {
 
   app.use(
     cors({
-      origin: env.CORS_ORIGIN,
+      // Allow configured origins, plus any localhost port in development.
+      // Requests with no Origin header (curl, Postman, same-origin) pass through.
+      origin: (origin, cb) => {
+        if (!origin || isAllowedOrigin(origin)) return cb(null, true);
+        cb(new Error(`Origin ${origin} is not allowed by CORS`));
+      },
       credentials: true, // session + csrf cookies
-      methods: ["GET", "POST", "PATCH", "DELETE", "OPTIONS"],
+      methods: ["GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"],
       allowedHeaders: ["Content-Type", "X-CSRF-Token"],
     }),
   );

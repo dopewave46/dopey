@@ -3,6 +3,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { apiErrorMessage } from "@/utils/apiError";
 import { crmStore } from "@/services/crmStore";
 import { CLIENT_STATUS_META } from "@/components/ui/StatusBadge";
 import type { Client, ClientStatus } from "@/services/types";
@@ -46,20 +47,29 @@ export function ClientFormModal({
 
   const set = (key: keyof typeof v, value: string) => setV((prev) => ({ ...prev, [key]: value }));
 
-  const submit = (e: FormEvent) => {
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
-    crmStore.updateClient(client.id, {
-      name: v.name.trim(),
-      company: v.company.trim() || undefined,
-      phone: v.phone.trim() || undefined,
-      email: v.email.trim() || undefined,
-      location: v.location.trim() || undefined,
-      website: v.website.trim() || undefined,
-      status: v.status,
-      notes: v.notes.trim() || undefined,
-    });
-    toast.success("Client updated", v.company || v.name);
-    onClose();
+    setSaving(true);
+    try {
+      await crmStore.updateClient(client.id, {
+        name: v.name.trim(),
+        company: v.company.trim() || undefined,
+        phone: v.phone.trim() || undefined,
+        email: v.email.trim() || undefined,
+        location: v.location.trim() || undefined,
+        website: v.website.trim() || undefined,
+        status: v.status,
+        notes: v.notes.trim() || undefined,
+      });
+      toast.success("Client updated", v.company || v.name);
+      onClose();
+    } catch (err) {
+      toast.error("Couldn't update the client", apiErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -72,7 +82,7 @@ export function ClientFormModal({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" form="client-form">
+          <Button type="submit" form="client-form" loading={saving} disabled={saving}>
             Save changes
           </Button>
         </>

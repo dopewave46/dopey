@@ -14,6 +14,7 @@ import { useCrm } from "@/hooks/useCrm";
 import { useProjects } from "@/hooks/useProjects";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { run } from "@/utils/runAction";
 import { daysUntil } from "@/services/amcSelectors";
 import { formatDate } from "@/utils/format";
 import s from "@/components/crm/detail.module.css";
@@ -124,7 +125,7 @@ export function AmcDetailPage() {
                   onChange={(e) => setNewTask(e.target.value)}
                   onKeyDown={(e) => {
                     if (e.key === "Enter" && newTask.trim()) {
-                      store.addTask(amc.id, newTask.trim());
+                      void run(store.addTask(amc.id, newTask.trim()), toast, "Couldn't add the item");
                       setNewTask("");
                     }
                   }}
@@ -135,7 +136,7 @@ export function AmcDetailPage() {
                 iconLeft="plus"
                 onClick={() => {
                   if (newTask.trim()) {
-                    store.addTask(amc.id, newTask.trim());
+                    void run(store.addTask(amc.id, newTask.trim()), toast, "Couldn't add the item");
                     setNewTask("");
                   }
                 }}
@@ -153,7 +154,7 @@ export function AmcDetailPage() {
                       type="button"
                       className={p.taskCheck}
                       data-done={t.status === "done"}
-                      onClick={() => store.toggleTask(t.id)}
+                      onClick={() => void run(store.toggleTask(t.id), toast, "Couldn't update the item")}
                       aria-label={t.status === "done" ? "Mark incomplete" : "Mark complete"}
                     >
                       {t.status === "done" && <Icon name="check" size={12} weight={3} />}
@@ -165,7 +166,7 @@ export function AmcDetailPage() {
                     <button
                       type="button"
                       aria-label="Delete item"
-                      onClick={() => store.deleteTask(t.id)}
+                      onClick={() => void run(store.deleteTask(t.id), toast, "Couldn't delete the item")}
                       style={{ border: 0, background: "transparent", color: "var(--muted)", cursor: "pointer", padding: 4 }}
                     >
                       <Icon name="close" size={13} weight={2} />
@@ -195,10 +196,13 @@ export function AmcDetailPage() {
         open={deleteConfirm.isOpen}
         onClose={deleteConfirm.close}
         onConfirm={() => {
-          store.deleteAmc(amc.id);
-          deleteConfirm.close();
-          toast.success("Plan deleted");
-          navigate("/amc");
+          void run(store.deleteAmc(amc.id), toast, "Couldn't delete the plan").then((ok) => {
+            deleteConfirm.close();
+            if (ok) {
+              toast.success("Plan deleted");
+              navigate("/amc");
+            }
+          });
         }}
         title="Delete this maintenance plan?"
         message="The contract and its checklist will be removed. This can't be undone."

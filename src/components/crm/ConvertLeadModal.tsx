@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/Field";
 import { useToast } from "@/components/feedback/ToastProvider";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { crmStore } from "@/services/crmStore";
+import { apiErrorMessage } from "@/utils/apiError";
 import { NewProjectModal } from "@/components/projects/NewProjectModal";
 import { formatCurrency } from "@/utils/format";
 import type { Client, Lead } from "@/services/types";
@@ -54,20 +55,29 @@ export function ConvertLeadModal({ open, onClose, lead }: ConvertLeadModalProps)
 
   if (!lead) return null;
 
-  const confirm = (e: FormEvent) => {
+  const [saving, setSaving] = useState(false);
+
+  const confirm = async (e: FormEvent) => {
     e.preventDefault();
-    const created = crmStore.convertLeadToClient(lead.id, {
-      name: draft.name.trim(),
-      company: draft.company.trim() || undefined,
-      phone: draft.phone.trim() || undefined,
-      email: draft.email.trim() || undefined,
-      location: draft.location.trim() || undefined,
-      website: draft.website.trim() || undefined,
-      notes: draft.notes.trim() || undefined,
-    });
-    setClient(created);
-    setPhase("done");
-    toast.success("Lead converted", `${created.company || created.name} is now a client.`);
+    setSaving(true);
+    try {
+      const created = await crmStore.convertLeadToClient(lead.id, {
+        name: draft.name.trim(),
+        company: draft.company.trim() || undefined,
+        phone: draft.phone.trim() || undefined,
+        email: draft.email.trim() || undefined,
+        location: draft.location.trim() || undefined,
+        website: draft.website.trim() || undefined,
+        notes: draft.notes.trim() || undefined,
+      });
+      setClient(created);
+      setPhase("done");
+      toast.success("Lead converted", `${created.company || created.name} is now a client.`);
+    } catch (err) {
+      toast.error("Couldn't convert this lead", apiErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
   };
 
   const set = (key: keyof typeof draft, value: string) =>
@@ -135,7 +145,7 @@ export function ConvertLeadModal({ open, onClose, lead }: ConvertLeadModalProps)
               <Button variant="secondary" onClick={onClose}>
                 Cancel
               </Button>
-              <Button type="submit" form="convert-form">
+              <Button type="submit" form="convert-form" loading={saving} disabled={saving}>
                 Create client
               </Button>
             </>

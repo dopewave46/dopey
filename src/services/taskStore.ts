@@ -1,20 +1,25 @@
 import type { Task, TaskPriority } from "./types";
-import { SAMPLE_TASKS } from "@/data/sampleTasks";
+import { api } from "./api";
+import type { StoreStatus } from "./storeStatus";
 
 /**
- * In-memory Tasks store — the single source of truth for tasks across the app
- * (the /tasks page, the Dashboard card, the Project and Client Tasks tabs).
- * Stands in for the backend until Prompt 09–11.
+ * Tasks store (Prompt 11) — API-backed. The single source of truth for tasks
+ * across the app (the /tasks page, the Dashboard card, the Project and Client
+ * Tasks tabs). `hydrate()` loads from the backend; mutations go through the API.
  */
 
-let tasks: Task[] = SAMPLE_TASKS;
+interface TaskState {
+  tasks: Task[];
+  status: StoreStatus;
+  error: string | null;
+}
+
+let state: TaskState = { tasks: [], status: "idle", error: null };
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
-const nowISO = () => new Date().toISOString();
-const rid = () => `task-${Math.random().toString(36).slice(2, 9)}`;
 
-function set(next: Task[]) {
-  tasks = next;
+function set(next: Partial<TaskState>) {
+  state = { ...state, ...next };
   emit();
 }
 
@@ -24,10 +29,25 @@ export const taskStore = {
     return () => listeners.delete(listener);
   },
   getSnapshot() {
-    return tasks;
+    return state;
   },
 
-  addTask(input: {
+  async hydrate(): Promise<void> {
+    if (state.status === "loading") return;
+    set({ status: "loading", error: null });
+    try {
+      const tasks = await api.get<Task[]>("/tasks");
+      set({ tasks, status: "ready", error: null });
+    } catch (err) {
+      set({ status: "error", error: err instanceof Error ? err.message : "Failed to load tasks" });
+    }
+  },
+
+  async reload(): Promise<void> {
+    set({ tasks: await api.get<Task[]>("/tasks") });
+  },
+
+  async addTask(input: {
     title: string;
     description?: string;
     projectId?: string;
@@ -35,49 +55,26 @@ export const taskStore = {
     priority?: TaskPriority;
     dueDate?: string;
     notes?: string;
-  }): Task {
-    const task: Task = {
-      id: rid(),
-      title: input.title,
-      description: input.description,
-      projectId: input.projectId,
-      clientId: input.clientId,
-      priority: input.priority ?? "medium",
-      status: "todo",
-      dueDate: input.dueDate,
-      notes: input.notes,
-      createdAt: nowISO(),
-      updatedAt: nowISO(),
-    };
-    set([task, ...tasks]);
+  }): Promise<Task> {
+    const task = await api.post<Task>("/tasks", input);
+    set({ tasks: [task, ...state.tasks] });
     return task;
   },
 
-  updateTask(id: string, patch: Partial<Task>) {
-    set(tasks.map((t) => (t.id === id ? { ...t, ...patch, updatedAt: nowISO() } : t)));
+  async updateTask(id: string, patch: Partial<Task>): Promise<Task> {
+    const updated = await api.patch<Task>(`/tasks/${id}`, patch);
+    set({ tasks: state.tasks.map((t) => (t.id === id ? updated : t)) });
+    return updated;
   },
 
-  toggleTask(id: string) {
-    set(
-      tasks.map((t) =>
-        t.id === id
-          ? {
-              ...t,
-              status: t.status === "completed" ? "todo" : "completed",
-              completedAt: t.status === "completed" ? undefined : nowISO(),
-              updatedAt: nowISO(),
-            }
-          : t,
-      ),
-    );
+  async toggleTask(id: string): Promise<void> {
+    const updated = await api.post<Task>(`/tasks/${id}/toggle`, {});
+    set({ tasks: state.tasks.map((t) => (t.id === id ? updated : t)) });
   },
 
-  deleteTask(id: string) {
-    set(tasks.filter((t) => t.id !== id));
-  },
-
-  removeForProject(projectId: string) {
-    set(tasks.filter((t) => t.projectId !== projectId));
+  async deleteTask(id: string): Promise<void> {
+    await api.delete(`/tasks/${id}`);
+    set({ tasks: state.tasks.filter((t) => t.id !== id) });
   },
 };
 

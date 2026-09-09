@@ -3,6 +3,8 @@ import { ViewAllLink } from "@/components/ui/ViewAllLink";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { Icon } from "@/components/icons/Icon";
 import { taskStore } from "@/services/taskStore";
+import { useToast } from "@/components/feedback/ToastProvider";
+import { run } from "@/utils/runAction";
 import type { Task } from "@/services/types";
 import s from "./sections.module.css";
 
@@ -11,6 +13,7 @@ import s from "./sections.module.css";
  * updates everywhere the task shows.
  */
 export function TodayTasksCard({ tasks }: { tasks: Task[] }) {
+  const toast = useToast();
   const remaining = tasks.filter((t) => t.status !== "completed").length;
 
   return (
@@ -33,7 +36,7 @@ export function TodayTasksCard({ tasks }: { tasks: Task[] }) {
                 type="button"
                 className={s.taskItem}
                 data-done={done}
-                onClick={() => taskStore.toggleTask(task.id)}
+                onClick={() => void run(taskStore.toggleTask(task.id), toast, "Couldn't update the task")}
                 aria-pressed={done}
               >
                 <span className={s.checkbox}>{done && <Icon name="check" size={12} weight={3} />}</span>

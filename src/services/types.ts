@@ -62,6 +62,9 @@ export type ExpenseCategory =
 
 export type AmcPaymentStatus = "paid" | "due" | "overdue";
 
+/** Contract status — derived server-side from renewal date (Prompt 08 §4). */
+export type AmcStatus = "active" | "expiring_soon" | "expired";
+
 export type ActivityEntity =
   | "lead"
   | "client"
@@ -178,6 +181,10 @@ export interface Invoice extends Timestamped {
   status: InvoiceStatus;
   paidDate?: ISODateString;
   notes?: string;
+  /** Server-derived (Prompt 09 invoice.service) — present on API responses. */
+  displayStatus?: InvoiceStatus;
+  /** Server-derived outstanding balance — present on API responses. */
+  balance?: number;
 }
 
 export interface Payment extends Timestamped {
@@ -211,6 +218,10 @@ export interface Amc extends Timestamped {
   paymentStatus: AmcPaymentStatus;
   hostingRenewalDate?: ISODateString;
   notes?: string;
+  /** Server-derived (Prompt 09 amc.service) — present on API responses. */
+  status?: AmcStatus;
+  /** Server-derived days until renewal — present on API responses. */
+  daysToRenewal?: number;
 }
 
 export interface AmcTask {

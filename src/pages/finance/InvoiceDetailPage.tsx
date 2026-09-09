@@ -14,6 +14,7 @@ import { useCrm } from "@/hooks/useCrm";
 import { useProjects } from "@/hooks/useProjects";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { run } from "@/utils/runAction";
 import {
   completedPaymentsFor,
   invoiceDisplayStatus,
@@ -63,8 +64,10 @@ export function InvoiceDetailPage() {
 
   const client = clients.find((c) => c.id === invoice.clientId);
   const project = projects.find((pr) => pr.id === invoice.projectId);
-  const display = invoiceDisplayStatus(invoice, payments);
-  const balance = outstandingBalance(invoice, payments);
+  // The backend derives these (Prompt 09 invoice.service) and sends them on
+  // every invoice — use them; the selector is only a fallback (Prompt 11 §7).
+  const display = invoice.displayStatus ?? invoiceDisplayStatus(invoice, payments);
+  const balance = invoice.balance ?? outstandingBalance(invoice, payments);
 
   return (
     <>
@@ -156,8 +159,11 @@ export function InvoiceDetailPage() {
               label="Set to"
               value={invoice.status}
               onChange={(v) => {
-                store.setInvoiceStatus(invoice.id, v as "draft" | "sent" | "paid" | "cancelled");
-                toast.success("Invoice updated");
+                void run(
+                  store.setInvoiceStatus(invoice.id, v as "draft" | "sent" | "paid" | "cancelled"),
+                  toast,
+                  "Couldn't update the invoice",
+                ).then((ok) => ok && toast.success("Invoice updated"));
               }}
               options={[
                 { value: "draft", label: "Draft" },

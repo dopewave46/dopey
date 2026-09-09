@@ -4,10 +4,11 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { apiErrorMessage } from "@/utils/apiError";
 import { useCrm } from "@/hooks/useCrm";
 import { useProjects } from "@/hooks/useProjects";
 import { amcStore } from "@/services/amcStore";
-import { AMC_SERVICES } from "@/data/sampleAmc";
+import { AMC_SERVICES } from "@/services/amcStore";
 import type { Amc, AmcPaymentStatus } from "@/services/types";
 import styles from "@/components/crm/LeadFormModal.module.css";
 
@@ -75,7 +76,9 @@ export function AmcFormModal({ open, onClose, amc, prefill, navigateOnCreate }: 
 
   const clientProjects = projects.filter((p) => p.clientId === v.clientId);
 
-  const submit = (e: FormEvent) => {
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const next: Record<string, string> = {};
     if (!v.clientId) next.clientId = "Pick the client this plan is for.";
@@ -96,15 +99,22 @@ export function AmcFormModal({ open, onClose, amc, prefill, navigateOnCreate }: 
       paymentStatus: v.paymentStatus,
       notes: v.notes.trim() || undefined,
     };
-    if (isEdit && amc) {
-      amcStore.updateAmc(amc.id, payload);
-      toast.success("Plan updated");
-    } else {
-      const created = amcStore.addAmc(payload);
-      toast.success("Maintenance plan added");
-      if (navigateOnCreate) navigate(`/amc/${created.id}`);
+    setSaving(true);
+    try {
+      if (isEdit && amc) {
+        await amcStore.updateAmc(amc.id, payload);
+        toast.success("Plan updated");
+      } else {
+        const created = await amcStore.addAmc(payload);
+        toast.success("Maintenance plan added");
+        if (navigateOnCreate && created) navigate(`/amc/${created.id}`);
+      }
+      onClose();
+    } catch (err) {
+      toast.error("Couldn't save the plan", apiErrorMessage(err));
+    } finally {
+      setSaving(false);
     }
-    onClose();
   };
 
   return (
@@ -117,7 +127,7 @@ export function AmcFormModal({ open, onClose, amc, prefill, navigateOnCreate }: 
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" form="amc-form">
+          <Button type="submit" form="amc-form" loading={saving} disabled={saving}>
             {isEdit ? "Save changes" : "Save plan"}
           </Button>
         </>

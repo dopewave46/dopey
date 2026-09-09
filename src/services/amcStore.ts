@@ -1,22 +1,25 @@
 import type { Amc, AmcPaymentStatus, AmcTask } from "./types";
-import { SAMPLE_AMCS, SAMPLE_AMC_TASKS } from "@/data/sampleAmc";
+import { api } from "./api";
+import type { StoreStatus } from "./storeStatus";
 
 /**
- * In-memory Maintenance / AMC store. Stands in for the backend until
- * Prompt 09–11. AMC contract status is derived (see `amcSelectors`), never
- * stored here.
+ * Maintenance / AMC store (Prompt 11) — API-backed.
+ *
+ * The backend returns each contract already decorated with its derived
+ * `status` (Active / Expiring Soon / Expired) and `daysToRenewal` — the
+ * frontend never recomputes renewal logic (Prompt 08 §4, Prompt 11 §8).
  */
 
 interface AmcState {
   amcs: Amc[];
   amcTasks: AmcTask[];
+  status: StoreStatus;
+  error: string | null;
 }
 
-let state: AmcState = { amcs: SAMPLE_AMCS, amcTasks: SAMPLE_AMC_TASKS };
+let state: AmcState = { amcs: [], amcTasks: [], status: "idle", error: null };
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
-const nowISO = () => new Date().toISOString();
-const rid = (p: string) => `${p}-${Math.random().toString(36).slice(2, 9)}`;
 
 function set(next: Partial<AmcState>) {
   state = { ...state, ...next };
@@ -32,7 +35,30 @@ export const amcStore = {
     return state;
   },
 
-  addAmc(input: {
+  async hydrate(): Promise<void> {
+    if (state.status === "loading") return;
+    set({ status: "loading", error: null });
+    try {
+      const amcs = await api.get<Amc[]>("/amc");
+      const taskLists = await Promise.all(
+        amcs.map((a) => api.get<AmcTask[]>(`/amc/${a.id}/tasks`)),
+      );
+      set({ amcs, amcTasks: taskLists.flat(), status: "ready", error: null });
+    } catch (err) {
+      set({
+        status: "error",
+        error: err instanceof Error ? err.message : "Failed to load maintenance plans",
+      });
+    }
+  },
+
+  async reload(): Promise<void> {
+    const amcs = await api.get<Amc[]>("/amc");
+    const taskLists = await Promise.all(amcs.map((a) => api.get<AmcTask[]>(`/amc/${a.id}/tasks`)));
+    set({ amcs, amcTasks: taskLists.flat() });
+  },
+
+  async addAmc(input: {
     clientId: string;
     projectId?: string;
     service: string;
@@ -41,43 +67,45 @@ export const amcStore = {
     hostingRenewalDate?: string;
     paymentStatus: AmcPaymentStatus;
     notes?: string;
-  }): Amc {
-    const amc: Amc = {
-      ...input,
-      id: rid("amc"),
-      createdAt: nowISO(),
-      updatedAt: nowISO(),
-    };
-    set({ amcs: [amc, ...state.amcs] });
-    return amc;
+  }): Promise<Amc> {
+    const { id } = await api.post<Amc>("/amc", input);
+    // Refetch so the new row carries its server-derived status.
+    await amcStore.reload();
+    return state.amcs.find((a) => a.id === id) ?? state.amcs[0];
   },
 
-  updateAmc(id: string, patch: Partial<Amc>) {
-    set({ amcs: state.amcs.map((a) => (a.id === id ? { ...a, ...patch, updatedAt: nowISO() } : a)) });
+  async updateAmc(id: string, patch: Partial<Amc>): Promise<Amc> {
+    await api.patch<Amc>(`/amc/${id}`, patch);
+    const decorated = await api.get<Amc>(`/amc/${id}`);
+    set({ amcs: state.amcs.map((a) => (a.id === id ? decorated : a)) });
+    return decorated;
   },
 
-  deleteAmc(id: string) {
+  async deleteAmc(id: string): Promise<void> {
+    await api.delete(`/amc/${id}`);
     set({
       amcs: state.amcs.filter((a) => a.id !== id),
       amcTasks: state.amcTasks.filter((t) => t.amcId !== id),
     });
   },
 
-  addTask(amcId: string, title: string, dueDate?: string): AmcTask {
-    const task: AmcTask = { id: rid("amct"), amcId, title, status: "todo", dueDate };
+  async addTask(amcId: string, title: string, dueDate?: string): Promise<AmcTask> {
+    const task = await api.post<AmcTask>(`/amc/${amcId}/tasks`, { title, dueDate });
     set({ amcTasks: [...state.amcTasks, task] });
     return task;
   },
 
-  toggleTask(taskId: string) {
-    set({
-      amcTasks: state.amcTasks.map((t) =>
-        t.id === taskId ? { ...t, status: t.status === "done" ? "todo" : "done" } : t,
-      ),
-    });
+  async toggleTask(taskId: string): Promise<void> {
+    const task = state.amcTasks.find((t) => t.id === taskId);
+    if (!task) return;
+    const updated = await api.post<AmcTask>(`/amc/${task.amcId}/tasks/${taskId}/toggle`, {});
+    set({ amcTasks: state.amcTasks.map((t) => (t.id === taskId ? updated : t)) });
   },
 
-  deleteTask(taskId: string) {
+  async deleteTask(taskId: string): Promise<void> {
+    const task = state.amcTasks.find((t) => t.id === taskId);
+    if (!task) return;
+    await api.delete(`/amc/${task.amcId}/tasks/${taskId}`);
     set({ amcTasks: state.amcTasks.filter((t) => t.id !== taskId) });
   },
 };
@@ -87,3 +115,12 @@ export const AMC_PAYMENT_LABELS: Record<AmcPaymentStatus, string> = {
   due: "Due",
   overdue: "Overdue",
 };
+
+/** AMC form service options (moved here from the removed sample data). */
+export const AMC_SERVICES = [
+  "Website Maintenance",
+  "Hosting + SSL",
+  "Support Retainer",
+  "Security & Backups",
+  "Content Updates",
+] as const;

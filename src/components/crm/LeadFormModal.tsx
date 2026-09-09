@@ -3,8 +3,13 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/feedback/ToastProvider";
-import { crmStore, LEAD_STAGE_LABELS, LEAD_STAGE_ORDER } from "@/services/crmStore";
-import { LEAD_SOURCES, SERVICES } from "@/data/sampleCrm";
+import {
+  crmStore,
+  LEAD_STAGE_LABELS,
+  LEAD_STAGE_ORDER,
+  LEAD_SOURCES,
+  SERVICES,
+} from "@/services/crmStore";
 import type { Lead, LeadStage } from "@/services/types";
 import styles from "./LeadFormModal.module.css";
 
@@ -81,7 +86,9 @@ export function LeadFormModal({ open, onClose, lead, onSaved }: LeadFormModalPro
     setErrors((e) => ({ ...e, [key]: undefined }));
   };
 
-  const submit = (e: FormEvent) => {
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const next: typeof errors = {};
     if (!values.name.trim()) next.name = "Enter the contact's name.";
@@ -112,16 +119,26 @@ export function LeadFormModal({ open, onClose, lead, onSaved }: LeadFormModalPro
       notes: values.notes.trim() || undefined,
     };
 
-    if (isEdit && lead) {
-      crmStore.updateLead(lead.id, payload);
-      toast.success("Lead updated", lead.business || lead.name);
-      onSaved?.({ ...lead, ...payload });
-    } else {
-      const created = crmStore.addLead(payload);
-      toast.success("Lead added", `${created.business} is in the ${LEAD_STAGE_LABELS[created.stage]} column.`);
-      onSaved?.(created);
+    setSaving(true);
+    try {
+      if (isEdit && lead) {
+        const updated = await crmStore.updateLead(lead.id, payload);
+        toast.success("Lead updated", updated.business || updated.name);
+        onSaved?.(updated);
+      } else {
+        const created = await crmStore.addLead(payload);
+        toast.success(
+          "Lead added",
+          `${created.business} is in the ${LEAD_STAGE_LABELS[created.stage]} column.`,
+        );
+        onSaved?.(created);
+      }
+      onClose();
+    } catch (err) {
+      toast.error("Couldn't save the lead", err instanceof Error ? err.message : undefined);
+    } finally {
+      setSaving(false);
     }
-    onClose();
   };
 
   return (
@@ -135,7 +152,7 @@ export function LeadFormModal({ open, onClose, lead, onSaved }: LeadFormModalPro
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" form="lead-form">
+          <Button type="submit" form="lead-form" loading={saving} disabled={saving}>
             {isEdit ? "Save changes" : "Save lead"}
           </Button>
         </>

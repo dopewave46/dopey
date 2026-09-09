@@ -4,7 +4,7 @@ import { ViewAllLink } from "@/components/ui/ViewAllLink";
 import { StatusBadge } from "@/components/ui/StatusBadge";
 import { cn } from "@/utils/cn";
 import { formatDate } from "@/utils/format";
-import type { ProjectSnapshot } from "@/data/sampleDashboard";
+import type { ProjectSnapshot } from "@/services/dashboardData";
 import s from "./sections.module.css";
 
 /** Snapshot of the most time-sensitive active projects. */

@@ -3,6 +3,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { apiErrorMessage } from "@/utils/apiError";
 import { useCrm } from "@/hooks/useCrm";
 import { useProjects } from "@/hooks/useProjects";
 import { useFinance } from "@/hooks/useFinance";
@@ -86,7 +87,9 @@ export function RecordPaymentModal({ open, onClose, prefill }: RecordPaymentModa
   const projectFor = (id?: string) => projects.find((p) => p.id === id);
   const clientLabel = (id: string) => clients.find((c) => c.id === id)?.company || clients.find((c) => c.id === id)?.name || "—";
 
-  const submit = (e: FormEvent) => {
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const next: Record<string, string> = {};
     const n = Number(amount.replace(/[,\s]/g, ""));
@@ -99,18 +102,25 @@ export function RecordPaymentModal({ open, onClose, prefill }: RecordPaymentModa
     }
 
     const inv = invoices.find((i) => i.id === invoiceId);
-    store.addPayment({
-      clientId: inv?.clientId ?? clientId,
-      projectId: inv?.projectId ?? prefill?.projectId,
-      invoiceId: invoiceId || undefined,
-      amount: n,
-      paymentDate: new Date(date).toISOString(),
-      method,
-      status,
-      reference: reference.trim() || undefined,
-    });
-    toast.success("Payment recorded", `${formatCurrency(n)} · ${METHOD_LABELS[method]}`);
-    onClose();
+    setSaving(true);
+    try {
+      await store.addPayment({
+        clientId: inv?.clientId ?? clientId,
+        projectId: inv?.projectId ?? prefill?.projectId,
+        invoiceId: invoiceId || undefined,
+        amount: n,
+        paymentDate: new Date(date).toISOString(),
+        method,
+        status,
+        reference: reference.trim() || undefined,
+      });
+      toast.success("Payment recorded", `${formatCurrency(n)} · ${METHOD_LABELS[method]}`);
+      onClose();
+    } catch (err) {
+      toast.error("Couldn't record the payment", apiErrorMessage(err));
+    } finally {
+      setSaving(false);
+    }
   };
 
   return (
@@ -123,7 +133,7 @@ export function RecordPaymentModal({ open, onClose, prefill }: RecordPaymentModa
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" form="record-payment-form">
+          <Button type="submit" form="record-payment-form" loading={saving} disabled={saving}>
             Save payment
           </Button>
         </>

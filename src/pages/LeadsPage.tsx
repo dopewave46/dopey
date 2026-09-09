@@ -15,9 +15,10 @@ import { ConvertLeadModal } from "@/components/crm/ConvertLeadModal";
 import { useCrm, useActiveLeads } from "@/hooks/useCrm";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useSimulatedLoad } from "@/hooks/useSimulatedLoad";
+import { useToast } from "@/components/feedback/ToastProvider";
 import { lastContactAt, nextFollowUp } from "@/services/crmSelectors";
-import { LEAD_STAGE_LABELS, LEAD_STAGE_ORDER } from "@/services/crmStore";
-import { LEAD_SOURCES, SERVICES } from "@/data/sampleCrm";
+import { LEAD_STAGE_LABELS, LEAD_STAGE_ORDER, LEAD_SOURCES, SERVICES } from "@/services/crmStore";
+import { run } from "@/utils/runAction";
 import { formatCurrency, formatDate, formatRelativeTime } from "@/utils/format";
 import type { Lead } from "@/services/types";
 
@@ -25,6 +26,7 @@ type View = "list" | "pipeline";
 
 export function LeadsPage() {
   const navigate = useNavigate();
+  const toast = useToast();
   const loading = useSimulatedLoad();
   const { activities, followUps, store } = useCrm();
   const leads = useActiveLeads();
@@ -191,7 +193,7 @@ export function LeadsPage() {
             <LeadKanban
               leads={filtered}
               onOpenLead={(id) => navigate(`/leads/${id}`)}
-              onStageChange={(id, s) => store.setLeadStage(id, s)}
+              onStageChange={(leadId, s) => void run(store.setLeadStage(leadId, s), toast, "Couldn't move the lead")}
               onWin={(lead) => setConvertLead(lead)}
             />
           )}

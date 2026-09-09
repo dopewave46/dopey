@@ -15,6 +15,8 @@ import { useProjects } from "@/hooks/useProjects";
 import { useCrm } from "@/hooks/useCrm";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useSimulatedLoad } from "@/hooks/useSimulatedLoad";
+import { useToast } from "@/components/feedback/ToastProvider";
+import { run } from "@/utils/runAction";
 import {
   bucketCounts,
   completedThisWeek,
@@ -34,6 +36,7 @@ const BUCKETS: { value: TaskBucket; label: string }[] = [
 ];
 
 export function TasksPage() {
+  const toast = useToast();
   const loading = useSimulatedLoad();
   const { tasks, store } = useTasks();
   const { projects } = useProjects();
@@ -133,7 +136,7 @@ export function TasksPage() {
                     task={task}
                     projectName={task.projectId ? projectName(task.projectId) : undefined}
                     clientName={clientName(task.clientId)}
-                    onToggle={() => store.toggleTask(task.id)}
+                    onToggle={() => void run(store.toggleTask(task.id), toast, "Couldn't update the task")}
                     onOpen={() => setOpenTask(task)}
                   />
                 ))}

@@ -5,6 +5,7 @@ import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { TaskFormModal } from "./TaskFormModal";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { apiErrorMessage } from "@/utils/apiError";
 import { taskStore, TASK_PRIORITY_COLOR, TASK_PRIORITY_LABELS } from "@/services/taskStore";
 import { formatDate } from "@/utils/format";
 import type { Task } from "@/services/types";
@@ -102,11 +103,15 @@ export function TaskDrawer({ task, onClose, projectName, clientName }: TaskDrawe
       <ConfirmDialog
         open={deleteConfirm.isOpen}
         onClose={deleteConfirm.close}
-        onConfirm={() => {
-          if (task) taskStore.deleteTask(task.id);
+        onConfirm={async () => {
+          try {
+            if (task) await taskStore.deleteTask(task.id);
+            toast.success("Task deleted");
+          } catch (err) {
+            toast.error("Couldn't delete the task", apiErrorMessage(err));
+          }
           deleteConfirm.close();
           onClose();
-          toast.success("Task deleted");
         }}
         title="Delete this task?"
         message="This can't be undone."

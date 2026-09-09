@@ -17,7 +17,9 @@ import { useFinance } from "@/hooks/useFinance";
 import { projectFinance } from "@/services/financeSelectors";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useSimulatedLoad } from "@/hooks/useSimulatedLoad";
+import { useToast } from "@/components/feedback/ToastProvider";
 import { PROJECT_BOARD_ORDER, PROJECT_STATUS_LABELS } from "@/services/projectStore";
+import { run } from "@/utils/runAction";
 import styles from "./ProjectsPage.module.css";
 
 type View = "grid" | "board";
@@ -25,6 +27,7 @@ type Sort = "deadline" | "progress" | "value";
 
 export function ProjectsPage() {
   const navigate = useNavigate();
+  const toast = useToast();
   const loading = useSimulatedLoad();
   const { projects, store } = useProjects();
   const { clients } = useCrm();
@@ -153,7 +156,7 @@ export function ProjectsPage() {
               projects={filtered}
               clientName={clientName}
               onOpen={(id) => navigate(`/projects/${id}`)}
-              onStatusChange={(id, s) => store.setStatus(id, s)}
+              onStatusChange={(pid, st) => void run(store.setStatus(pid, st), toast, "Couldn't update the project")}
             />
           )}
         </>

@@ -4,6 +4,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { apiErrorMessage } from "@/utils/apiError";
 import { useCrm } from "@/hooks/useCrm";
 import { useProjects } from "@/hooks/useProjects";
 import { financeStore } from "@/services/financeStore";
@@ -60,7 +61,9 @@ export function InvoiceFormModal({ open, onClose, invoice, prefill, navigateOnCr
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open, invoice, prefill]);
 
-  const submit = (e: FormEvent) => {
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const next: Record<string, string> = {};
     const n = Number(amount.replace(/[,\s]/g, ""));
@@ -81,15 +84,22 @@ export function InvoiceFormModal({ open, onClose, invoice, prefill, navigateOnCr
       notes: notes.trim() || undefined,
     };
 
-    if (isEdit && invoice) {
-      financeStore.updateInvoice(invoice.id, payload);
-      toast.success("Invoice updated", invoice.invoiceNumber);
-    } else {
-      const created = financeStore.addInvoice(payload);
-      toast.success("Invoice created", `${created.invoiceNumber} · saved as Draft`);
-      if (navigateOnCreate) navigate(`/finance/invoices/${created.id}`);
+    setSaving(true);
+    try {
+      if (isEdit && invoice) {
+        await financeStore.updateInvoice(invoice.id, payload);
+        toast.success("Invoice updated", invoice.invoiceNumber);
+      } else {
+        const created = await financeStore.addInvoice(payload);
+        toast.success("Invoice created", `${created.invoiceNumber} · saved as Draft`);
+        if (navigateOnCreate) navigate(`/finance/invoices/${created.id}`);
+      }
+      onClose();
+    } catch (err) {
+      toast.error("Couldn't save the invoice", apiErrorMessage(err));
+    } finally {
+      setSaving(false);
     }
-    onClose();
   };
 
   return (
@@ -103,7 +113,7 @@ export function InvoiceFormModal({ open, onClose, invoice, prefill, navigateOnCr
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" form="invoice-form">
+          <Button type="submit" form="invoice-form" loading={saving} disabled={saving}>
             {isEdit ? "Save changes" : "Save invoice"}
           </Button>
         </>

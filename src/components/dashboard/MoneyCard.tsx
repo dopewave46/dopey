@@ -3,7 +3,7 @@ import { ProgressBar } from "@/components/ui/ProgressBar";
 import { ViewAllLink } from "@/components/ui/ViewAllLink";
 import { cn } from "@/utils/cn";
 import { formatCurrency } from "@/utils/format";
-import type { MoneyPosition } from "@/data/sampleDashboard";
+import type { MoneyPosition } from "@/services/dashboardData";
 import s from "./sections.module.css";
 
 export function MoneyCard({ money }: { money: MoneyPosition }) {

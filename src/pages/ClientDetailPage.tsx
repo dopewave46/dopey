@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -30,6 +30,7 @@ import { projectsForClient, isActiveStatus } from "@/services/projectSelectors";
 import { clientFinance, invoiceDisplayStatus } from "@/services/financeSelectors";
 import { METHOD_LABELS } from "@/services/financeStore";
 import { crmStore } from "@/services/crmStore";
+import { run } from "@/utils/runAction";
 import { formatCurrency, formatDate } from "@/utils/format";
 import s from "@/components/crm/detail.module.css";
 import cs from "./ClientDetailPage.module.css";
@@ -44,6 +45,11 @@ export function ClientDetailPage() {
   const { tasks, store: taskStore } = useTasks();
 
   const client = clients.find((c) => c.id === id);
+
+  useEffect(() => {
+    if (id) void crmStore.loadActivitiesFor("client", id);
+  }, [id]);
+
   const [tab, setTab] = useState("overview");
   const [notesDraft, setNotesDraft] = useState(client?.notes ?? "");
   const editModal = useDisclosure();
@@ -99,8 +105,11 @@ export function ClientDetailPage() {
   }
 
   const saveNotes = () => {
-    crmStore.updateClient(client.id, { notes: notesDraft.trim() || undefined });
-    toast.success("Notes saved");
+    void run(
+      crmStore.updateClient(client.id, { notes: notesDraft.trim() || undefined }),
+      toast,
+      "Couldn't save the notes",
+    ).then((ok) => ok && toast.success("Notes saved"));
   };
 
   return (
@@ -371,7 +380,7 @@ export function ClientDetailPage() {
                       type="button"
                       className={p.taskCheck}
                       data-done={done}
-                      onClick={() => taskStore.toggleTask(t.id)}
+                      onClick={() => void run(taskStore.toggleTask(t.id), toast, "Couldn't update the task")}
                       aria-label={done ? "Mark incomplete" : "Mark complete"}
                     >
                       {done && <Icon name="check" size={12} weight={3} />}

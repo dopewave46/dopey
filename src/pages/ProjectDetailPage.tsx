@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -25,6 +25,7 @@ import { useCrm } from "@/hooks/useCrm";
 import { useFinance } from "@/hooks/useFinance";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { run } from "@/utils/runAction";
 import { PROJECT_BOARD_ORDER, PROJECT_STATUS_LABELS } from "@/services/projectStore";
 import { METHOD_LABELS } from "@/services/financeStore";
 import { projectFinance, invoiceDisplayStatus } from "@/services/financeSelectors";
@@ -52,6 +53,11 @@ export function ProjectDetailPage() {
   const { invoices, payments } = useFinance();
 
   const project = projects.find((pr) => pr.id === id);
+
+  useEffect(() => {
+    if (id) void store.loadActivitiesFor(id);
+  }, [id, store]);
+
   const [tab, setTab] = useState("overview");
   const editModal = useDisclosure();
   const deleteConfirm = useDisclosure();
@@ -154,8 +160,11 @@ export function ProjectDetailPage() {
                     <Button
                       size="sm"
                       onClick={() => {
-                        store.updateProject(project.id, { requirements: reqDraft.trim() || undefined });
-                        toast.success("Requirements saved");
+                        void run(
+                          store.updateProject(project.id, { requirements: reqDraft.trim() || undefined }),
+                          toast,
+                          "Couldn't save",
+                        ).then((ok) => ok && toast.success("Requirements saved"));
                       }}
                     >
                       Save
@@ -179,7 +188,9 @@ export function ProjectDetailPage() {
               <InlineSelect
                 label="Move to"
                 value={project.status}
-                onChange={(v) => store.setStatus(project.id, v as ProjectStatus)}
+                onChange={(v) =>
+                  void run(store.setStatus(project.id, v as ProjectStatus), toast, "Couldn't change the status")
+                }
                 options={PROJECT_BOARD_ORDER.map((st) => ({ value: st, label: PROJECT_STATUS_LABELS[st] }))}
               />
             </Card>
@@ -224,7 +235,7 @@ export function ProjectDetailPage() {
                       type="button"
                       className={p.taskCheck}
                       data-done={done}
-                      onClick={() => taskStore.toggleTask(task.id)}
+                      onClick={() => void run(taskStore.toggleTask(task.id), toast, "Couldn't update the task")}
                       aria-pressed={done}
                       aria-label={done ? "Mark task incomplete" : "Mark task complete"}
                     >
@@ -256,7 +267,10 @@ export function ProjectDetailPage() {
             title="Timeline"
             subtitle="Tap a stage to cycle: not started → in progress → done"
           />
-          <ProjectTimeline stages={projectStages} onCycle={(sid) => store.cycleStage(sid)} />
+          <ProjectTimeline
+            stages={projectStages}
+            onCycle={(sid) => void run(store.cycleStage(sid), toast, "Couldn't update the stage")}
+          />
         </Card>
       </TabPanel>
 
@@ -376,12 +390,15 @@ export function ProjectDetailPage() {
                 variant={linksEdit ? "primary" : "secondary"}
                 onClick={() => {
                   if (linksEdit) {
-                    store.updateProject(project.id, {
-                      repoUrl: links.repoUrl.trim() || undefined,
-                      stagingUrl: links.stagingUrl.trim() || undefined,
-                      liveUrl: links.liveUrl.trim() || undefined,
-                    });
-                    toast.success("Links saved");
+                    void run(
+                      store.updateProject(project.id, {
+                        repoUrl: links.repoUrl.trim() || undefined,
+                        stagingUrl: links.stagingUrl.trim() || undefined,
+                        liveUrl: links.liveUrl.trim() || undefined,
+                      }),
+                      toast,
+                      "Couldn't save the links",
+                    ).then((ok) => ok && toast.success("Links saved"));
                   }
                   setLinksEdit((e) => !e);
                 }}
@@ -419,8 +436,9 @@ export function ProjectDetailPage() {
                     <Button
                       size="sm"
                       onClick={() => {
-                        store.addNote(project.id, notesDraft.trim());
-                        toast.success("Notes saved");
+                        void run(store.addNote(project.id, notesDraft.trim()), toast, "Couldn't save the notes").then(
+                          (ok) => ok && toast.success("Notes saved"),
+                        );
                       }}
                     >
                       Save
@@ -466,10 +484,13 @@ export function ProjectDetailPage() {
         open={deleteConfirm.isOpen}
         onClose={deleteConfirm.close}
         onConfirm={() => {
-          store.deleteProject(project.id);
-          deleteConfirm.close();
-          toast.success("Project deleted");
-          navigate("/projects");
+          void run(store.deleteProject(project.id), toast, "Couldn't delete the project").then((ok) => {
+            deleteConfirm.close();
+            if (ok) {
+              toast.success("Project deleted");
+              navigate("/projects");
+            }
+          });
         }}
         title="Delete this project?"
         message="This removes the project and its stages and tasks. This can't be undone."

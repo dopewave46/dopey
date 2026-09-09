@@ -14,6 +14,7 @@ import { useFinance } from "@/hooks/useFinance";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useSimulatedLoad } from "@/hooks/useSimulatedLoad";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { run } from "@/utils/runAction";
 import { EXPENSE_CATEGORY_LABELS, financeStore } from "@/services/financeStore";
 import { inRange, periodRange } from "@/utils/period";
 import { formatCurrency, formatDate } from "@/utils/format";
@@ -186,8 +187,11 @@ export function ExpensesPage() {
         open={deleting !== null}
         onClose={() => setDeleting(null)}
         onConfirm={() => {
-          if (deleting) financeStore.deleteExpense(deleting.id);
-          toast.success("Expense deleted");
+          if (deleting) {
+            void run(financeStore.deleteExpense(deleting.id), toast, "Couldn't delete the expense").then(
+              (ok) => ok && toast.success("Expense deleted"),
+            );
+          }
           setDeleting(null);
         }}
         title="Delete this expense?"

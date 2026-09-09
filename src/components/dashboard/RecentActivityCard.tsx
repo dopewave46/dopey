@@ -3,7 +3,7 @@ import { ViewAllLink } from "@/components/ui/ViewAllLink";
 import { Icon } from "@/components/icons/Icon";
 import { cn } from "@/utils/cn";
 import { formatRelativeTime } from "@/utils/format";
-import type { ActivityItem } from "@/data/sampleDashboard";
+import type { ActivityItem } from "@/services/dashboardData";
 import s from "./sections.module.css";
 
 export function RecentActivityCard({ activity }: { activity: ActivityItem[] }) {

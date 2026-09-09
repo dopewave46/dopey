@@ -1,6 +1,6 @@
 import { Card, CardHeader } from "@/components/ui/Card";
 import { cn } from "@/utils/cn";
-import type { TodayOverview } from "@/data/sampleDashboard";
+import type { TodayOverview } from "@/services/dashboardData";
 import s from "./sections.module.css";
 
 const CONFIG: Array<{ key: keyof TodayOverview; label: string; alert?: boolean }> = [

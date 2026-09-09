@@ -1,42 +1,40 @@
 import type { Activity, Project, ProjectStage, ProjectStatus } from "./types";
-import {
-  SAMPLE_PROJECTS,
-  SAMPLE_PROJECT_STAGES,
-  SAMPLE_PROJECT_ACTIVITIES,
-} from "@/data/sampleProjects";
+import { api } from "./api";
 import { taskStore } from "./taskStore";
+import type { StoreStatus } from "./storeStatus";
 
 /**
- * In-memory Projects store — mirrors the shape of `crmStore` (Prompt 05).
- * Stands in for the backend until Prompt 09–11. Async-shaped reads/writes,
- * immutable slices, subscriber notifications so the list, board, detail tabs
- * and the client profile all stay in sync.
+ * Projects store (Prompt 11) — API-backed. Mirrors `crmStore`.
+ *
+ * `hydrate()` loads projects and their stage checklists from the backend.
+ * Progress roll-up, stage re-alignment on status change, and activity logging
+ * are all done server-side (Prompt 09 project.service) — this store just
+ * reflects what the API returns, keeping the list, board, detail tabs and the
+ * client profile in sync with PostgreSQL.
  */
 
 interface ProjectState {
   projects: Project[];
   stages: ProjectStage[];
   activities: Activity[];
+  status: StoreStatus;
+  error: string | null;
 }
 
 let state: ProjectState = {
-  projects: SAMPLE_PROJECTS,
-  stages: SAMPLE_PROJECT_STAGES,
-  activities: SAMPLE_PROJECT_ACTIVITIES,
+  projects: [],
+  stages: [],
+  activities: [],
+  status: "idle",
+  error: null,
 };
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
-const nowISO = () => new Date().toISOString();
-const id = (p: string) => `${p}-${Math.random().toString(36).slice(2, 9)}`;
 
 function set(next: Partial<ProjectState>) {
   state = { ...state, ...next };
   emit();
-}
-
-function pushActivity(entry: Omit<Activity, "id" | "createdAt">) {
-  set({ activities: [{ ...entry, id: id("pact"), createdAt: nowISO() }, ...state.activities] });
 }
 
 /* ------------------------------------------------------------------ */
@@ -72,7 +70,8 @@ export const PROJECT_STAGE_FLOW: ProjectStatus[] = [
 /** Board column order — the full status list including On Hold. */
 export const PROJECT_BOARD_ORDER: ProjectStatus[] = [...PROJECT_STAGE_FLOW, "on_hold"];
 
-/** Build a fresh stage checklist for a new project at a given status. */
+/** Build a fresh stage checklist for a new project at a given status (used by
+ *  the New Project modal preview before the server responds). */
 export function buildStages(projectId: string, status: ProjectStatus): ProjectStage[] {
   const currentIndex = PROJECT_STAGE_FLOW.indexOf(status);
   return PROJECT_STAGE_FLOW.map((stage, order) => {
@@ -91,13 +90,12 @@ export function buildStages(projectId: string, status: ProjectStatus): ProjectSt
   });
 }
 
-function progressFromStages(stages: ProjectStage[]): number {
-  if (stages.length === 0) return 0;
-  const score = stages.reduce(
-    (sum, s) => sum + (s.state === "done" ? 1 : s.state === "in_progress" ? 0.5 : 0),
-    0,
-  );
-  return Math.round((score / stages.length) * 100);
+async function fetchStagesFor(projectId: string): Promise<ProjectStage[]> {
+  return api.get<ProjectStage[]>(`/projects/${projectId}/stages`);
+}
+
+function replaceStages(projectId: string, next: ProjectStage[]) {
+  set({ stages: [...state.stages.filter((s) => s.projectId !== projectId), ...next] });
 }
 
 /* ------------------------------------------------------------------ */
@@ -111,7 +109,37 @@ export const projectStore = {
     return state;
   },
 
-  addProject(input: {
+  async hydrate(): Promise<void> {
+    if (state.status === "loading") return;
+    set({ status: "loading", error: null });
+    try {
+      const projects = await api.get<Project[]>("/projects");
+      const stageLists = await Promise.all(projects.map((p) => fetchStagesFor(p.id)));
+      set({ projects, stages: stageLists.flat(), status: "ready", error: null });
+    } catch (err) {
+      set({
+        status: "error",
+        error: err instanceof Error ? err.message : "Failed to load projects",
+      });
+    }
+  },
+
+  async reload(): Promise<void> {
+    const projects = await api.get<Project[]>("/projects");
+    const stageLists = await Promise.all(projects.map((p) => fetchStagesFor(p.id)));
+    set({ projects, stages: stageLists.flat() });
+  },
+
+  async reloadOne(projectId: string): Promise<void> {
+    const [project, stages] = await Promise.all([
+      api.get<Project>(`/projects/${projectId}`),
+      fetchStagesFor(projectId),
+    ]);
+    set({ projects: state.projects.map((p) => (p.id === projectId ? project : p)) });
+    replaceStages(projectId, stages);
+  },
+
+  async addProject(input: {
     clientId: string;
     name: string;
     value: number;
@@ -120,126 +148,65 @@ export const projectStore = {
     status: ProjectStatus;
     requirements?: string;
     notes?: string;
-  }): Project {
-    const project: Project = {
-      id: id("proj"),
-      clientId: input.clientId,
-      name: input.name,
-      value: input.value,
-      startDate: input.startDate,
-      deadline: input.deadline,
-      status: input.status,
-      progressPercent: 0,
-      requirements: input.requirements,
-      notes: input.notes,
-      createdAt: nowISO(),
-      updatedAt: nowISO(),
-    };
-    const stages = buildStages(project.id, project.status);
-    project.progressPercent = progressFromStages(stages);
-    set({
-      projects: [project, ...state.projects],
-      stages: [...state.stages, ...stages],
-    });
-    pushActivity({
-      type: "project_created",
-      entityType: "project",
-      entityId: project.id,
-      summary: `Project created — ${project.name}`,
-    });
+  }): Promise<Project> {
+    const project = await api.post<Project>("/projects", input);
+    set({ projects: [project, ...state.projects] });
+    replaceStages(project.id, await fetchStagesFor(project.id));
     return project;
   },
 
-  updateProject(projectId: string, patch: Partial<Project>) {
-    set({
-      projects: state.projects.map((p) =>
-        p.id === projectId ? { ...p, ...patch, updatedAt: nowISO() } : p,
-      ),
-    });
+  async updateProject(projectId: string, patch: Partial<Project>): Promise<Project> {
+    const updated = await api.patch<Project>(`/projects/${projectId}`, patch);
+    set({ projects: state.projects.map((p) => (p.id === projectId ? updated : p)) });
+    return updated;
   },
 
-  setStatus(projectId: string, status: ProjectStatus) {
+  async setStatus(projectId: string, status: ProjectStatus): Promise<void> {
     const project = state.projects.find((p) => p.id === projectId);
     if (!project || project.status === status) return;
-
-    // Re-align the linear stage checklist unless moving to On Hold.
-    let stages = state.stages;
-    if (status !== "on_hold") {
-      const rebuilt = buildStages(projectId, status);
-      stages = [...state.stages.filter((s) => s.projectId !== projectId), ...rebuilt];
-    }
-    const projStages = stages.filter((s) => s.projectId === projectId);
-    set({
-      projects: state.projects.map((p) =>
-        p.id === projectId
-          ? { ...p, status, progressPercent: progressFromStages(projStages), updatedAt: nowISO() }
-          : p,
-      ),
-      stages,
-    });
-    pushActivity({
-      type: "status_changed",
-      entityType: "project",
-      entityId: projectId,
-      summary: `${project.name} moved to ${PROJECT_STATUS_LABELS[status]}`,
-    });
+    const updated = await api.post<Project>(`/projects/${projectId}/status`, { status });
+    set({ projects: state.projects.map((p) => (p.id === projectId ? updated : p)) });
+    replaceStages(projectId, await fetchStagesFor(projectId));
   },
 
-  cycleStage(stageId: string) {
+  async cycleStage(stageId: string): Promise<void> {
     const stage = state.stages.find((s) => s.id === stageId);
     if (!stage) return;
     const nextState: ProjectStage["state"] =
-      stage.state === "not_started" ? "in_progress" : stage.state === "in_progress" ? "done" : "not_started";
-    const stages = state.stages.map((s) =>
-      s.id === stageId
-        ? {
-            ...s,
-            state: nextState,
-            completionPercent: nextState === "done" ? 100 : nextState === "in_progress" ? 40 : 0,
-          }
-        : s,
+      stage.state === "not_started"
+        ? "in_progress"
+        : stage.state === "in_progress"
+          ? "done"
+          : "not_started";
+    const { stage: nextStage, project } = await api.post<{ stage: ProjectStage; project: Project }>(
+      `/projects/${stage.projectId}/stages/${stageId}`,
+      { state: nextState },
     );
-    const projStages = stages.filter((s) => s.projectId === stage.projectId);
     set({
-      stages,
-      projects: state.projects.map((p) =>
-        p.id === stage.projectId
-          ? { ...p, progressPercent: progressFromStages(projStages), updatedAt: nowISO() }
-          : p,
-      ),
+      stages: state.stages.map((s) => (s.id === stageId ? nextStage : s)),
+      projects: state.projects.map((p) => (p.id === stage.projectId ? project : p)),
     });
   },
 
-  deleteProject(projectId: string) {
-    const project = state.projects.find((p) => p.id === projectId);
+  async deleteProject(projectId: string): Promise<void> {
+    await api.delete(`/projects/${projectId}`);
     set({
       projects: state.projects.filter((p) => p.id !== projectId),
       stages: state.stages.filter((s) => s.projectId !== projectId),
     });
-    taskStore.removeForProject(projectId);
-    if (project) {
-      pushActivity({
-        type: "project_deleted",
-        entityType: "project",
-        entityId: projectId,
-        summary: `Project deleted — ${project.name}`,
-      });
-    }
+    // The backend cascades task deletion — mirror that locally.
+    await taskStore.reload();
   },
 
-  addNote(projectId: string, notes: string) {
-    projectStore.updateProject(projectId, { notes });
-    pushActivity({
-      type: "note_logged",
-      entityType: "project",
-      entityId: projectId,
-      summary: "Notes updated",
-    });
+  async addNote(projectId: string, notes: string): Promise<void> {
+    await projectStore.updateProject(projectId, { notes });
   },
 
-  /** Append a project activity from another module (e.g. Finance payments). */
-  noteActivity(projectId: string, type: string, summary: string) {
-    if (!state.projects.some((p) => p.id === projectId)) return;
-    pushActivity({ type, entityType: "project", entityId: projectId, summary });
+  /** Load a project's activity feed on demand (detail page). */
+  async loadActivitiesFor(projectId: string): Promise<void> {
+    const rows = await api.get<Activity[]>(`/projects/${projectId}/activity`);
+    const byId = new Map(state.activities.map((a) => [a.id, a]));
+    for (const a of rows) byId.set(a.id, a);
+    set({ activities: [...byId.values()].sort((a, b) => (a.createdAt < b.createdAt ? 1 : -1)) });
   },
 };

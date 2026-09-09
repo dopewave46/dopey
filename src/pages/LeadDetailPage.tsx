@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { PageHeader } from "@/components/ui/PageHeader";
 import { Card, CardHeader } from "@/components/ui/Card";
@@ -16,6 +16,7 @@ import { useDisclosure } from "@/hooks/useDisclosure";
 import { useToast } from "@/components/feedback/ToastProvider";
 import { activitiesForEntity } from "@/services/crmSelectors";
 import { LEAD_STAGE_LABELS, LEAD_STAGE_ORDER } from "@/services/crmStore";
+import { run } from "@/utils/runAction";
 import { formatCurrency, formatDate } from "@/utils/format";
 import type { LeadStage } from "@/services/types";
 import s from "@/components/crm/detail.module.css";
@@ -27,6 +28,11 @@ export function LeadDetailPage() {
   const { leads, followUps, activities, clients, store } = useCrm();
 
   const lead = leads.find((l) => l.id === id);
+
+  useEffect(() => {
+    if (id) void store.loadActivitiesFor("lead", id);
+  }, [id, store]);
+
   const editModal = useDisclosure();
   const convertModal = useDisclosure();
   const archiveConfirm = useDisclosure();
@@ -64,11 +70,15 @@ export function LeadDetailPage() {
     ? clients.find((c) => c.id === lead.convertedClientId)
     : undefined;
 
-  const logCall = () => {
+  const logCall = async () => {
     if (!callNote.trim()) return;
-    store.logLeadNote(lead.id, callNote.trim());
-    setCallNote("");
-    toast.success("Call logged");
+    try {
+      await store.logLeadNote(lead.id, callNote.trim());
+      setCallNote("");
+      toast.success("Call logged");
+    } catch {
+      toast.error("Couldn't log the call");
+    }
   };
 
   return (
@@ -153,7 +163,7 @@ export function LeadDetailPage() {
                 if (next === "won" && !convertedClient) {
                   convertModal.open();
                 } else {
-                  store.setLeadStage(lead.id, next);
+                  void run(store.setLeadStage(lead.id, next), toast, "Couldn't change the stage");
                 }
               }}
               options={LEAD_STAGE_ORDER.map((st) => ({ value: st, label: LEAD_STAGE_LABELS[st] }))}
@@ -192,8 +202,9 @@ export function LeadDetailPage() {
                           size="sm"
                           variant="secondary"
                           onClick={() => {
-                            store.completeFollowUp(fu.id);
-                            toast.success("Follow-up done");
+                            void run(store.completeFollowUp(fu.id), toast, "Couldn't update the follow-up").then(
+                              (ok) => ok && toast.success("Follow-up done"),
+                            );
                           }}
                         >
                           Mark done
@@ -221,10 +232,13 @@ export function LeadDetailPage() {
         open={archiveConfirm.isOpen}
         onClose={archiveConfirm.close}
         onConfirm={() => {
-          store.archiveLead(lead.id);
-          archiveConfirm.close();
-          toast.success("Lead archived");
-          navigate("/leads");
+          void run(store.archiveLead(lead.id), toast, "Couldn't archive the lead").then((ok) => {
+            archiveConfirm.close();
+            if (ok) {
+              toast.success("Lead archived");
+              navigate("/leads");
+            }
+          });
         }}
         title="Archive this lead?"
         message="The lead is hidden from your pipeline but kept for reporting. You can't undo this from the UI yet."

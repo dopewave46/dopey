@@ -125,3 +125,17 @@
     transform: translateY(-8px);
   }
 }
+
+/* Prompt 11 — grouped results */
+.groupLabel {
+  margin: var(--s-3) 0 var(--s-1);
+  padding: 0 var(--s-2);
+  font: var(--t-meta);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+.groupLabel:first-child {
+  margin-top: 0;
+}

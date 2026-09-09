@@ -1,5 +1,5 @@
 import { StatCard } from "@/components/ui/StatCard";
-import type { Metric } from "@/data/sampleDashboard";
+import type { Metric } from "@/services/dashboardData";
 import s from "./sections.module.css";
 
 export function MetricCards({ metrics }: { metrics: Metric[] }) {

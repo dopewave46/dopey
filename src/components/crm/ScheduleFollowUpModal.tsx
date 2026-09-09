@@ -3,6 +3,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { apiErrorMessage } from "@/utils/apiError";
 import { crmStore } from "@/services/crmStore";
 import type { FollowUp } from "@/services/types";
 
@@ -33,17 +34,21 @@ export function ScheduleFollowUpModal({
     }
   }, [open, parentName]);
 
-  const submit = (e: FormEvent) => {
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!date) return;
-    crmStore.addFollowUp({
-      parentType,
-      parentId,
-      dueDate: new Date(date).toISOString(),
-      note: note.trim() || `Follow up with ${parentName}`,
-    });
-    toast.success("Follow-up scheduled", `${parentName} · ${new Date(date).toLocaleDateString("en-IN")}`);
-    onClose();
+    try {
+      await crmStore.addFollowUp({
+        parentType,
+        parentId,
+        dueDate: new Date(date).toISOString(),
+        note: note.trim() || `Follow up with ${parentName}`,
+      });
+      toast.success("Follow-up scheduled", `${parentName} · ${new Date(date).toLocaleDateString("en-IN")}`);
+      onClose();
+    } catch (err) {
+      toast.error("Couldn't schedule the follow-up", apiErrorMessage(err));
+    }
   };
 
   return (

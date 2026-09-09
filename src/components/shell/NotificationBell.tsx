@@ -1,11 +1,10 @@
-import { useMemo, useRef, useState } from "react";
+import { useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Icon, type IconName } from "@/components/icons/Icon";
 import { EmptyState } from "@/components/ui/EmptyState";
 import { useDisclosure } from "@/hooks/useDisclosure";
 import { useOnClickOutside } from "@/hooks/useOnClickOutside";
-import { useLiveNotifications } from "@/hooks/useLiveNotifications";
-import { notificationHref } from "@/services/notificationSelectors";
+import { useNotifications, notificationHref } from "@/services/notificationStore";
 import type { NotificationType } from "@/services/types";
 import { formatRelativeTime } from "@/utils/format";
 import styles from "./NotificationBell.module.css";
@@ -24,16 +23,10 @@ const TYPE_META: Record<NotificationType, { icon: IconName; tone: "error" | "suc
 export function NotificationBell() {
   const { isOpen, toggle, close } = useDisclosure();
   const navigate = useNavigate();
-  const items = useLiveNotifications();
-  const [readIds, setReadIds] = useState<Set<string>>(new Set());
+  const { items, unread, markRead, markAllRead } = useNotifications();
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useOnClickOutside(wrapRef, close, isOpen);
-
-  const unread = useMemo(() => items.filter((n) => !readIds.has(n.id)).length, [items, readIds]);
-
-  const markAllRead = () => setReadIds(new Set(items.map((n) => n.id)));
-  const markRead = (id: string) => setReadIds((prev) => new Set(prev).add(id));
 
   return (
     <div className={styles.wrap} ref={wrapRef}>
@@ -54,7 +47,7 @@ export function NotificationBell() {
           <header className={styles.header}>
             <span className={styles.title}>Notifications</span>
             {unread > 0 && (
-              <button type="button" className={styles.markAll} onClick={markAllRead}>
+              <button type="button" className={styles.markAll} onClick={() => void markAllRead()}>
                 Mark all read
               </button>
             )}
@@ -65,15 +58,15 @@ export function NotificationBell() {
               <EmptyState compact icon="bell" title="You're all caught up" />
             ) : (
               items.map((n) => {
-                const meta = TYPE_META[n.type];
-                const isRead = readIds.has(n.id);
+                const meta = TYPE_META[n.type] ?? TYPE_META.client_update;
+                const isRead = n.isRead;
                 return (
                   <button
                     key={n.id}
                     type="button"
                     className={isRead ? styles.item : `${styles.item} ${styles.unread}`}
                     onClick={() => {
-                      markRead(n.id);
+                      void markRead(n.id);
                       close();
                       navigate(notificationHref(n));
                     }}

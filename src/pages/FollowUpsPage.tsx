@@ -10,6 +10,7 @@ import { RescheduleModal } from "@/components/crm/RescheduleModal";
 import { useCrm } from "@/hooks/useCrm";
 import { useSimulatedLoad } from "@/hooks/useSimulatedLoad";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { run } from "@/utils/runAction";
 import { resolveFollowUps, daysOverdue, type FollowUpBucket } from "@/services/crmSelectors";
 import { formatDate } from "@/utils/format";
 import type { FollowUp } from "@/services/types";
@@ -91,8 +92,9 @@ export function FollowUpsPage() {
                               size="sm"
                               variant="secondary"
                               onClick={() => {
-                                store.completeFollowUp(followUp.id);
-                                toast.success("Follow-up done", title);
+                                void run(store.completeFollowUp(followUp.id), toast, "Couldn't update the follow-up").then(
+                                  (ok) => ok && toast.success("Follow-up done", title),
+                                );
                               }}
                             >
                               Mark done

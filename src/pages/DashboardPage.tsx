@@ -1,5 +1,4 @@
-import { useMemo, useState } from "react";
-import { Icon } from "@/components/icons/Icon";
+import { useMemo } from "react";
 import { ErrorState } from "@/components/ui/ErrorState";
 import { SkeletonCard } from "@/components/ui/Skeleton";
 import { useAsyncData } from "@/hooks/useAsyncData";
@@ -9,7 +8,7 @@ import { tasksInBucket } from "@/services/taskSelectors";
 import { revenueSummary, currentMonthProgress } from "@/services/financeSelectors";
 import { formatCurrency } from "@/utils/format";
 import { CURRENT_ADMIN } from "@/services/session";
-import { getDashboardData } from "@/data/sampleDashboard";
+import { getDashboardData } from "@/services/dashboardData";
 import { GreetingHeader } from "@/components/dashboard/GreetingHeader";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { MetricCards } from "@/components/dashboard/MetricCards";
@@ -25,7 +24,6 @@ export function DashboardPage() {
   const { data, loading, error, reload } = useAsyncData(getDashboardData);
   const { invoices, payments, expenses } = useFinance();
   const { tasks } = useTasks();
-  const [showNotice, setShowNotice] = useState(true);
 
   const todayTasks = useMemo(() => tasksInBucket(tasks, "today"), [tasks]);
 
@@ -52,24 +50,6 @@ export function DashboardPage() {
     <>
       <GreetingHeader name={CURRENT_ADMIN.name} />
       <QuickActions />
-
-      {showNotice && (
-        <div className={s.notice} role="note">
-          <Icon name="alert-circle" size={16} weight={1.9} />
-          <span>
-            Preview data. Each section connects to live data as the CRM, Finance, Tasks, and Projects
-            modules are built.
-          </span>
-          <button
-            type="button"
-            className={s.noticeClose}
-            onClick={() => setShowNotice(false)}
-            aria-label="Dismiss notice"
-          >
-            <Icon name="close" size={14} weight={2} />
-          </button>
-        </div>
-      )}
 
       {error ? (
         <ErrorState

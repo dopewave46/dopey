@@ -8,15 +8,15 @@ Two packages: the frontend at the repo root, the backend in **`server/`** (its o
 
 - **Vite + React 18 + TypeScript**, React Router 6 (`createBrowserRouter`)
 - Plain **CSS Modules** + design tokens in `src/styles/tokens.css`. No CSS framework, no component library.
-- Still runs on in-memory mock stores (`src/services/*Store.ts`). `src/services/api.ts` is the seam Prompt 11 wires to the backend.
+- **P11: fully wired to the backend.** No mock data. `src/services/api.ts` is the one HTTP client (credentials + CSRF + envelope + 401 → login). Each `src/services/*Store.ts` still uses `useSyncExternalStore` but now `hydrate()`s from the API on boot and mutates through it. `src/services/auth.tsx` (`AuthProvider`) guards the shell via `GET /auth/me`; `/login` is the sign-in screen.
+- Run both: `cd server && npm run db:seed && npm run dev` (once), then `npm run dev` at the root. Login: `admin@dopeorca.local` / `OrcaAdmin123` (or whatever `server/.env` seeds).
 
 ## Backend (`server/` — Prompt 09 + 10)
 
 - **Node + TypeScript + Express 4 + Zod**. `cd server && npm i && cp .env.example .env && npm run db:seed && npm run dev` (port 4000). See `server/README.md`.
 - Layers: `routes/` (thin) → `services/` (all business logic) → `repositories/` (`Repository<T>` interface).
-- **P10: PostgreSQL via Drizzle ORM** (`server/src/db/`). `DbRepository` replaced the in-memory stub — services/controllers/API contracts unchanged. Migrations in `server/src/db/migrations/`; `npm run db:migrate` / `db:seed` / `db:reset`. Local dev auto-starts an embedded Postgres (no install); prod uses `DATABASE_URL` + `USE_EMBEDDED_PG=false`.
+- **P10: PostgreSQL via Drizzle ORM** (`server/src/db/`). `DbRepository` replaced the in-memory stub — services/controllers/API contracts unchanged. Migrations in `server/migrations/`; `npm run db:migrate` / `db:seed` / `db:reset`. Local dev auto-starts an embedded Postgres (no install); prod uses `DATABASE_URL` + `USE_EMBEDDED_PG=false`.
 - Auth: httpOnly session cookie + CSRF double-submit; single seeded admin. One response envelope `{data}` / `{error:{message,code}}`.
-- Runs on its own — frontend NOT yet connected (that's Prompt 11).
 
 ## Commands
 
@@ -47,10 +47,11 @@ src/
   layouts/       AppShell.tsx — sidebar + header + <Outlet> + mobile nav
   pages/         one file per route; PlaceholderModule for not-yet-built modules
   hooks/         useClock, useMediaQuery, useOnClickOutside, useDisclosure
-  services/      types.ts (domain models, mirror the spec), api.ts, session.ts
+  services/      api.ts (HTTP client), auth.tsx (AuthProvider/guard), *Store.ts
+                 (API-backed useSyncExternalStore modules), *Selectors.ts,
+                 hydration.ts (boot load), notificationStore.ts, dashboardData.ts
   config/        navigation.ts (locked nav order)
-  data/          sample* — clearly-labelled preview data, replaced by real modules
-  utils/         cn, format (INR currency, IST dates, relative time)
+  utils/         cn, format (INR currency, IST dates, relative time), apiError, runAction
 ```
 
 ### Conventions
@@ -63,9 +64,29 @@ src/
 - All money via `formatCurrency()`, all dates via `formatDate()` — never inline `Intl`.
 - New shared UI goes in `components/ui` and must use only design tokens.
 
-## Status — frontend complete (P03–P08)
+## Status — full stack wired (P01–P11)
 
-- ✅ P01 spec · P02 design system · P03 shell · P04 Dashboard · P05 CRM + Leads · P06 Projects · P07 Finance + Analytics · **P08 Tasks + AMC**
+- ✅ P01 spec · P02 design system · P03 shell · P04 Dashboard · P05 CRM · P06 Projects · P07 Finance/Analytics · P08 Tasks/AMC · P09 backend · P10 Postgres · **P11 full integration**
+- **P11 — frontend ↔ backend ↔ DB, end to end.** `src/data/sample*` DELETED. `src/services/api.ts` is
+  the one HTTP client: `credentials:'include'`, auto `X-CSRF-Token` from the `orca_csrf` cookie on
+  unsafe methods, unwraps `{data}`/`{error}`, 401 → registered handler → `/login`. `src/services/auth.tsx`
+  (`AuthProvider` + `useAuth`) probes `GET /auth/me` on boot; `AppShell` shows a splash while probing,
+  redirects to `/login` if unauthed, then `hydrateAll()` loads every store. `src/pages/LoginPage.tsx`
+  (email+password, existing Input/Button). Each `*Store.ts` kept its `useSyncExternalStore` surface but
+  now `hydrate()`s from list endpoints and every mutation is `async` → API → refetch affected slice
+  (cross-entity cascades like convert / payment re-hydrate the touched stores). `useSimulatedLoad()` now
+  returns the real combined hydration flag. Dashboard: `src/services/dashboardData.ts` adapts
+  `GET /dashboard` → the existing `DashboardData` view-model; "Preview data" banner removed. Notifications:
+  `src/services/notificationStore.ts` polls `GET /notifications` every 60s + refetches after lead/payment;
+  `useLiveNotifications`/`notificationSelectors` deleted. Search palette → debounced `GET /search`, grouped.
+  Settings page → `GET/PATCH /settings`. Logout → `useAuth().logout()`. Invoice detail uses the backend's
+  derived `displayStatus`/`balance`. AMC status comes from the server (`amcSelectors.amcStatus` prefers
+  `amc.status`). Helpers: `src/utils/apiError.ts`, `src/utils/runAction.ts` (`run()` toasts failures).
+  Verified via headless-Chrome CDP: login→dashboard real numbers, add-lead persists, lead→client
+  conversion, refresh keeps session, logout redirects, protected routes redirect, 0 console exceptions.
+- P08: `taskStore` (`useTasks`) owns ALL tasks — moved out of projectStore.
+  selectors `src/services/taskSelectors.ts` (buckets today/upcoming/overdue/completed, grouping).
+  `amcStore` (`useAmc`) + `amcSelectors.ts`.
 - P08: `taskStore` (`useTasks`) owns ALL tasks — moved out of projectStore. Seed `src/data/sampleTasks.ts`,
   selectors `src/services/taskSelectors.ts` (buckets today/upcoming/overdue/completed, grouping).
   `amcStore` (`useAmc`) + `src/data/sampleAmc.ts` + `amcSelectors.ts` (status derived from renewalDate).

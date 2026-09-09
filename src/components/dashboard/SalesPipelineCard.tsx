@@ -1,7 +1,7 @@
 import { Card, CardHeader } from "@/components/ui/Card";
 import { ViewAllLink } from "@/components/ui/ViewAllLink";
 import { cn } from "@/utils/cn";
-import type { PipelineStage } from "@/data/sampleDashboard";
+import type { PipelineStage } from "@/services/dashboardData";
 import s from "./sections.module.css";
 
 const METER_COLOR: Record<PipelineStage["tone"], string> = {

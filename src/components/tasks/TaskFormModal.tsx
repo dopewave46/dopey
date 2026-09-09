@@ -3,6 +3,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { apiErrorMessage } from "@/utils/apiError";
 import { useProjects } from "@/hooks/useProjects";
 import { useCrm } from "@/hooks/useCrm";
 import { taskStore, TASK_PRIORITY_LABELS } from "@/services/taskStore";
@@ -79,7 +80,9 @@ export function TaskFormModal({ open, onClose, task, prefill }: TaskFormModalPro
     }));
   };
 
-  const submit = (e: FormEvent) => {
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     if (!v.title.trim()) {
       setError("Give the task a title.");
@@ -94,14 +97,21 @@ export function TaskFormModal({ open, onClose, task, prefill }: TaskFormModalPro
       dueDate: v.dueDate ? new Date(v.dueDate).toISOString() : undefined,
       notes: v.notes.trim() || undefined,
     };
-    if (isEdit && task) {
-      taskStore.updateTask(task.id, payload);
-      toast.success("Task updated");
-    } else {
-      taskStore.addTask(payload);
-      toast.success("Task added");
+    setSaving(true);
+    try {
+      if (isEdit && task) {
+        await taskStore.updateTask(task.id, payload);
+        toast.success("Task updated");
+      } else {
+        await taskStore.addTask(payload);
+        toast.success("Task added");
+      }
+      onClose();
+    } catch (err) {
+      setError(apiErrorMessage(err));
+    } finally {
+      setSaving(false);
     }
-    onClose();
   };
 
   return (
@@ -114,7 +124,7 @@ export function TaskFormModal({ open, onClose, task, prefill }: TaskFormModalPro
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" form="task-form">
+          <Button type="submit" form="task-form" loading={saving} disabled={saving}>
             {isEdit ? "Save changes" : "Save task"}
           </Button>
         </>

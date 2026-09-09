@@ -3,6 +3,7 @@ import { Modal } from "@/components/ui/Modal";
 import { Button } from "@/components/ui/Button";
 import { Input, Select, Textarea } from "@/components/ui/Field";
 import { useToast } from "@/components/feedback/ToastProvider";
+import { apiErrorMessage } from "@/utils/apiError";
 import { financeStore, EXPENSE_CATEGORY_LABELS } from "@/services/financeStore";
 import type { Expense, ExpenseCategory } from "@/services/types";
 import styles from "@/components/crm/LeadFormModal.module.css";
@@ -43,7 +44,9 @@ export function ExpenseFormModal({
     }
   }, [open, expense]);
 
-  const submit = (e: FormEvent) => {
+  const [saving, setSaving] = useState(false);
+
+  const submit = async (e: FormEvent) => {
     e.preventDefault();
     const next: Record<string, string> = {};
     const n = Number(amount.replace(/[,\s]/g, ""));
@@ -61,14 +64,21 @@ export function ExpenseFormModal({
       date: new Date(date).toISOString(),
       notes: notes.trim() || undefined,
     };
-    if (isEdit && expense) {
-      financeStore.updateExpense(expense.id, payload);
-      toast.success("Expense updated", payload.name);
-    } else {
-      financeStore.addExpense(payload);
-      toast.success("Expense added", payload.name);
+    setSaving(true);
+    try {
+      if (isEdit && expense) {
+        await financeStore.updateExpense(expense.id, payload);
+        toast.success("Expense updated", payload.name);
+      } else {
+        await financeStore.addExpense(payload);
+        toast.success("Expense added", payload.name);
+      }
+      onClose();
+    } catch (err) {
+      toast.error("Couldn't save the expense", apiErrorMessage(err));
+    } finally {
+      setSaving(false);
     }
-    onClose();
   };
 
   return (
@@ -82,7 +92,7 @@ export function ExpenseFormModal({
           <Button variant="secondary" onClick={onClose}>
             Cancel
           </Button>
-          <Button type="submit" form="expense-form">
+          <Button type="submit" form="expense-form" loading={saving} disabled={saving}>
             {isEdit ? "Save changes" : "Add expense"}
           </Button>
         </>

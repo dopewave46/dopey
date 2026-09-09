@@ -1,49 +1,51 @@
 import type { Expense, Invoice, Payment } from "./types";
-import {
-  SAMPLE_EXPENSES,
-  SAMPLE_INVOICES,
-  SAMPLE_PAYMENTS,
-  NEXT_INVOICE_SEQ,
-} from "@/data/sampleFinance";
-import { projectStore } from "./projectStore";
+import { api } from "./api";
+import { notificationStore } from "./notificationStore";
+import type { StoreStatus } from "./storeStatus";
 
 /**
- * In-memory Finance store — the single source of truth for money.
+ * Finance store (Prompt 11) — API-backed. The single source of truth for money
+ * on the frontend: invoices, payments and expenses. The Finance module, the
+ * Dashboard Money section, the Client profile tabs and the Project Finance tab
+ * all derive their numbers from here (via `financeSelectors`).
  *
- * Invoices, payments and expenses live here. The Finance module, the Dashboard
- * Money section, the Client profile tabs and the Project Finance tab all derive
- * their numbers from this store (via `financeSelectors`), so figures never
- * drift. Async-shaped, immutable slices, subscriber notifications. Stands in
- * for the backend until Prompt 09–11.
+ * The payment → invoice settle cascade and project activity logging happen
+ * server-side (Prompt 09 payment.service); after recording a payment this store
+ * simply refetches invoices + payments so every view reflects PostgreSQL.
  */
 
 interface FinanceState {
   invoices: Invoice[];
   payments: Payment[];
   expenses: Expense[];
+  status: StoreStatus;
+  error: string | null;
 }
 
-let seq = NEXT_INVOICE_SEQ;
 let state: FinanceState = {
-  invoices: SAMPLE_INVOICES,
-  payments: SAMPLE_PAYMENTS,
-  expenses: SAMPLE_EXPENSES,
+  invoices: [],
+  payments: [],
+  expenses: [],
+  status: "idle",
+  error: null,
 };
 
 const listeners = new Set<() => void>();
 const emit = () => listeners.forEach((l) => l());
-const nowISO = () => new Date().toISOString();
-const rid = (p: string) => `${p}-${Math.random().toString(36).slice(2, 9)}`;
 
 function set(next: Partial<FinanceState>) {
   state = { ...state, ...next };
   emit();
 }
 
-function completedPaidFor(invoiceId: string): number {
-  return state.payments
-    .filter((p) => p.invoiceId === invoiceId && p.status === "completed")
-    .reduce((sum, p) => sum + p.amount, 0);
+async function fetchInvoices() {
+  return api.get<Invoice[]>("/finance/invoices");
+}
+async function fetchPayments() {
+  return api.get<Payment[]>("/finance/payments");
+}
+async function fetchExpenses() {
+  return api.getWithMeta<Expense[]>("/finance/expenses").then((r) => r.data);
 }
 
 export const financeStore = {
@@ -55,52 +57,62 @@ export const financeStore = {
     return state;
   },
 
+  async hydrate(): Promise<void> {
+    if (state.status === "loading") return;
+    set({ status: "loading", error: null });
+    try {
+      const [invoices, payments, expenses] = await Promise.all([
+        fetchInvoices(),
+        fetchPayments(),
+        fetchExpenses(),
+      ]);
+      set({ invoices, payments, expenses, status: "ready", error: null });
+    } catch (err) {
+      set({
+        status: "error",
+        error: err instanceof Error ? err.message : "Failed to load finance data",
+      });
+    }
+  },
+
+  async reloadInvoicesAndPayments(): Promise<void> {
+    const [invoices, payments] = await Promise.all([fetchInvoices(), fetchPayments()]);
+    set({ invoices, payments });
+  },
+
   /* ---------------- Invoices ---------------- */
 
-  addInvoice(input: {
+  async addInvoice(input: {
     clientId: string;
     projectId?: string;
     amount: number;
     issueDate: string;
     dueDate: string;
     notes?: string;
-  }): Invoice {
-    const invoice: Invoice = {
-      id: rid("inv"),
-      invoiceNumber: `INV-0${seq++}`,
-      clientId: input.clientId,
-      projectId: input.projectId,
-      amount: input.amount,
-      issueDate: input.issueDate,
-      dueDate: input.dueDate,
-      status: "draft",
-      notes: input.notes,
-      createdAt: nowISO(),
-      updatedAt: nowISO(),
-    };
+  }): Promise<Invoice> {
+    const invoice = await api.post<Invoice>("/finance/invoices", input);
     set({ invoices: [invoice, ...state.invoices] });
     return invoice;
   },
 
-  updateInvoice(id: string, patch: Partial<Invoice>) {
-    set({
-      invoices: state.invoices.map((i) => (i.id === id ? { ...i, ...patch, updatedAt: nowISO() } : i)),
-    });
+  async updateInvoice(id: string, patch: Partial<Invoice>): Promise<Invoice> {
+    const updated = await api.patch<Invoice>(`/finance/invoices/${id}`, patch);
+    set({ invoices: state.invoices.map((i) => (i.id === id ? updated : i)) });
+    return updated;
   },
 
   /** Manual status transitions: draft → sent → paid | cancelled. */
-  setInvoiceStatus(id: string, status: "draft" | "sent" | "paid" | "cancelled") {
-    const invoice = state.invoices.find((i) => i.id === id);
-    if (!invoice) return;
-    financeStore.updateInvoice(id, {
-      status,
-      paidDate: status === "paid" ? invoice.paidDate ?? nowISO() : undefined,
-    });
+  async setInvoiceStatus(
+    id: string,
+    status: "draft" | "sent" | "paid" | "cancelled",
+  ): Promise<void> {
+    const updated = await api.post<Invoice>(`/finance/invoices/${id}/status`, { status });
+    set({ invoices: state.invoices.map((i) => (i.id === id ? updated : i)) });
   },
 
   /* ---------------- Payments ---------------- */
 
-  addPayment(input: {
+  async addPayment(input: {
     clientId: string;
     projectId?: string;
     invoiceId?: string;
@@ -109,61 +121,32 @@ export const financeStore = {
     method: Payment["method"];
     status: Payment["status"];
     reference?: string;
-  }): Payment {
-    const payment: Payment = {
-      id: rid("pay"),
-      clientId: input.clientId,
-      projectId: input.projectId,
-      invoiceId: input.invoiceId,
-      amount: input.amount,
-      paymentDate: input.paymentDate,
-      method: input.method,
-      status: input.status,
-      reference: input.reference,
-      createdAt: nowISO(),
-      updatedAt: nowISO(),
-    };
-    set({ payments: [payment, ...state.payments] });
-
-    // Settle the linked invoice if this completes it.
-    if (payment.invoiceId && payment.status === "completed") {
-      const invoice = state.invoices.find((i) => i.id === payment.invoiceId);
-      if (invoice && invoice.status !== "cancelled") {
-        const paid = completedPaidFor(invoice.id);
-        if (paid >= invoice.amount) {
-          financeStore.updateInvoice(invoice.id, { status: "paid", paidDate: payment.paymentDate });
-        } else if (invoice.status === "draft") {
-          financeStore.updateInvoice(invoice.id, { status: "sent" });
-        }
-      }
-    }
-
-    // Reflect on the linked project's activity feed (Prompt 06).
-    if (payment.projectId) {
-      projectStore.noteActivity(
-        payment.projectId,
-        "payment_received",
-        `Payment recorded — ₹${payment.amount.toLocaleString("en-IN")} (${METHOD_LABELS[payment.method]})`,
-      );
-    }
+  }): Promise<Payment> {
+    const payment = await api.post<Payment>("/finance/payments", input);
+    // Server settles the linked invoice + logs project activity + fires a
+    // "payment received" notification — refetch so every view (Finance, Project
+    // Finance tab, Dashboard) stays consistent.
+    await financeStore.reloadInvoicesAndPayments();
+    void notificationStore.refresh();
     return payment;
   },
 
   /* ---------------- Expenses ---------------- */
 
-  addExpense(input: Omit<Expense, "id" | "createdAt" | "updatedAt">): Expense {
-    const expense: Expense = { ...input, id: rid("exp"), createdAt: nowISO(), updatedAt: nowISO() };
+  async addExpense(input: Omit<Expense, "id" | "createdAt" | "updatedAt">): Promise<Expense> {
+    const expense = await api.post<Expense>("/finance/expenses", input);
     set({ expenses: [expense, ...state.expenses] });
     return expense;
   },
 
-  updateExpense(id: string, patch: Partial<Expense>) {
-    set({
-      expenses: state.expenses.map((e) => (e.id === id ? { ...e, ...patch, updatedAt: nowISO() } : e)),
-    });
+  async updateExpense(id: string, patch: Partial<Expense>): Promise<Expense> {
+    const updated = await api.patch<Expense>(`/finance/expenses/${id}`, patch);
+    set({ expenses: state.expenses.map((e) => (e.id === id ? updated : e)) });
+    return updated;
   },
 
-  deleteExpense(id: string) {
+  async deleteExpense(id: string): Promise<void> {
+    await api.delete(`/finance/expenses/${id}`);
     set({ expenses: state.expenses.filter((e) => e.id !== id) });
   },
 };
