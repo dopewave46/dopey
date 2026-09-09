@@ -14,8 +14,9 @@ The API + auth + business-logic layer that Prompt 11 will connect the frontend t
 | **pino** | Structured, leveled logs — pretty in dev, JSON in prod. |
 | **helmet / express-rate-limit / cookie-parser** | Small, boring, well-supported security middleware. |
 
-No database yet. Data lives behind a **repository interface** (`src/repositories/`) — the in-memory
-implementation is swapped for Postgres in Prompt 10 without touching services, controllers or the API contract.
+**Database (Prompt 10): PostgreSQL via Drizzle ORM.** Data lives behind the same **repository
+interface** (`src/repositories/`); the in-memory stub was replaced by `DbRepository` (`src/db/`)
+with no change to services, controllers or the API contract. See `## Database` below.
 
 ## Run
 
@@ -25,12 +26,42 @@ cp .env.example .env          # then set SESSION_SECRET + ADMIN_PASSWORD
 npm install
 npm run dev                   # tsx watch, http://localhost:4000
 # or
-npm run build && npm start
+npm run build && npm start    # start = production; needs an external DATABASE_URL
 ```
 
-On first start with no admin, the account from `ADMIN_EMAIL` / `ADMIN_PASSWORD` is seeded
-(spec Section L — no public sign-up). Demo data (leads/clients/projects/… with the same ids as the
-frontend) is loaded so every endpoint returns realistic content.
+`npm run dev` boots a local **embedded Postgres** automatically (no install, no Docker — data in
+`server/.pgdata`), applies migrations, then starts the API. On first start with no admin, the account
+from `ADMIN_EMAIL` / `ADMIN_PASSWORD` is seeded (spec Section L — no public sign-up).
+
+**Before the first `npm run dev`, load the sample data once** so every endpoint returns realistic
+content: `npm run db:seed`.
+
+## Database
+
+PostgreSQL + **Drizzle ORM / drizzle-kit** — SQL-first, plain version-controlled `.sql` migrations,
+no generated client or runtime query engine, cleanest fit for this ESM + Express backend.
+
+| Command | What it does |
+|---|---|
+| `npm run db:up` | Start the embedded Postgres and keep it running (Ctrl+C to stop). Optional — only if you want one long-lived DB shared by several terminals. |
+| `npm run db:generate` | Regenerate SQL migrations from `src/db/schema.ts` after a schema change. |
+| `npm run db:migrate` | Apply pending migrations (`src/db/migrations/`). |
+| `npm run db:seed` | Migrate, then load the sample dataset (truncates sample tables first; keeps the admin user). |
+| `npm run db:reset` | Drop everything, re-migrate, re-seed. Dev only. |
+| `npm run db:studio` | Drizzle Studio — browse the DB in the browser. |
+
+Local dev uses the embedded server against `DATABASE_URL`. **Production:** point `DATABASE_URL` at a
+managed Postgres, set `USE_EMBEDDED_PG=false`, run `npm run db:migrate` on deploy, then `npm start`.
+
+Schema notes: `text` primary keys (ids like `lead-01`, `inv_<uuid>`); money is `numeric(12,2)`,
+single currency INR (a `currency` column defaulted to `'INR'` rides along on money tables for
+future-proofing); all timestamps `timestamptz` (UTC); enums are `text` + `CHECK` constraints.
+Foreign keys: `RESTRICT` on financially-linked rows (client→project/invoice/payment, payment→invoice),
+`CASCADE` on child checklists (project_stages, amc_tasks), `SET NULL` on soft links
+(lead↔client, project→invoice/payment/amc, task→client). Derived values (invoice balance/overdue,
+AMC status, client balance, analytics aggregates) are **not** stored — the service layer computes
+them; `projects.progress_percent` is the one stored rollup, maintained by `project.service` exactly
+as in Prompt 09.
 
 ## API
 

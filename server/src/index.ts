@@ -3,6 +3,9 @@ import { env } from "./config/env.js";
 import { logger } from "./utils/logger.js";
 import { createApp } from "./app.js";
 import { initDb } from "./repositories/index.js";
+import { closeDb } from "./db/client.js";
+import { ensurePostgres, stopPostgres } from "./db/embedded.js";
+import { runMigrations } from "./db/migrate.js";
 import { startNotificationsJob, stopNotificationsJob } from "./jobs/notifications.job.js";
 
 /**
@@ -14,10 +17,13 @@ import { startNotificationsJob, stopNotificationsJob } from "./jobs/notification
  *  - Zod: schema validation shared in spirit with the frontend's TypeScript;
  *    one place defines required fields, types and enums.
  *  - bcryptjs, pino, helmet, express-rate-limit: small, boring, well-supported.
- *  - Data lives behind a repository interface (in-memory now — Prompt 10 swaps
- *    it for Postgres without touching services or controllers).
+ *  - Data lives behind a repository interface. Prompt 10: that interface is now
+ *    backed by PostgreSQL via Drizzle ORM (see src/db/). In development a local
+ *    embedded Postgres is booted automatically; production uses DATABASE_URL.
  */
 async function main(): Promise<void> {
+  await ensurePostgres();
+  await runMigrations();
   await initDb();
 
   const app = createApp();
@@ -32,7 +38,11 @@ async function main(): Promise<void> {
   const shutdown = (signal: string) => {
     logger.info({ signal }, "shutting down");
     stopNotificationsJob();
-    server.close(() => process.exit(0));
+    server.close(async () => {
+      await closeDb().catch(() => {});
+      await stopPostgres().catch(() => {});
+      process.exit(0);
+    });
     setTimeout(() => process.exit(1), 5000).unref();
   };
   process.on("SIGTERM", () => shutdown("SIGTERM"));

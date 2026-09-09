@@ -2,11 +2,21 @@
 
 Private internal operating system for **DopeOrca Technologies** (solo web-design agency, Mumbai). Single admin user · INR ₹ · Asia/Kolkata · desktop-first, fully responsive.
 
-## Stack
+Two packages: the frontend at the repo root, the backend in **`server/`** (its own package.json / tsconfig / README).
+
+## Frontend stack
 
 - **Vite + React 18 + TypeScript**, React Router 6 (`createBrowserRouter`)
 - Plain **CSS Modules** + design tokens in `src/styles/tokens.css`. No CSS framework, no component library.
-- No backend / database / auth yet — `src/services/api.ts` is the single seam for later wiring.
+- Still runs on in-memory mock stores (`src/services/*Store.ts`). `src/services/api.ts` is the seam Prompt 11 wires to the backend.
+
+## Backend (`server/` — Prompt 09 + 10)
+
+- **Node + TypeScript + Express 4 + Zod**. `cd server && npm i && cp .env.example .env && npm run db:seed && npm run dev` (port 4000). See `server/README.md`.
+- Layers: `routes/` (thin) → `services/` (all business logic) → `repositories/` (`Repository<T>` interface).
+- **P10: PostgreSQL via Drizzle ORM** (`server/src/db/`). `DbRepository` replaced the in-memory stub — services/controllers/API contracts unchanged. Migrations in `server/src/db/migrations/`; `npm run db:migrate` / `db:seed` / `db:reset`. Local dev auto-starts an embedded Postgres (no install); prod uses `DATABASE_URL` + `USE_EMBEDDED_PG=false`.
+- Auth: httpOnly session cookie + CSRF double-submit; single seeded admin. One response envelope `{data}` / `{error:{message,code}}`.
+- Runs on its own — frontend NOT yet connected (that's Prompt 11).
 
 ## Commands
 

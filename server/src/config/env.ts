@@ -19,7 +19,12 @@ const schema = z.object({
   ADMIN_NAME: z.string().default("Shahid Khan"),
 
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
-  DATABASE_URL: z.string().default("postgres://localhost:5432/dopeorca_os"),
+  DATABASE_URL: z.string().default("postgres://postgres:postgres@localhost:5432/dopeorca_os"),
+  // Dev only: run a local embedded Postgres (no Docker/install). Ignored in production.
+  USE_EMBEDDED_PG: z
+    .enum(["true", "false"])
+    .default("true")
+    .transform((v) => v === "true"),
 
   NOTIFICATIONS_INTERVAL_MINUTES: z.coerce.number().int().positive().default(60),
   RENEWAL_LEAD_DAYS: z.coerce.number().int().positive().default(30),

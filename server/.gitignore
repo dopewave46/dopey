@@ -5,3 +5,6 @@ dist
 !.env.example
 *.log
 *.tsbuildinfo
+
+# local embedded Postgres data directory (dev only)
+.pgdata/
