@@ -7,7 +7,8 @@ import { authLimiter } from "../middleware/rate-limit.js";
 import { authSchemas } from "../schemas/index.js";
 import { changePassword, destroySession, login, makeCookieValue, toPublicUser } from "../services/auth.service.js";
 import { getAdminUser } from "../services/auth.service.js";
-import { env, isProd } from "../config/env.js";
+import { env } from "../config/env.js";
+import { SESSION_COOKIE_SAMESITE } from "../config/cookies.js";
 
 export const authRoutes = Router();
 
@@ -22,10 +23,9 @@ authRoutes.post(
     });
     res.cookie(SESSION_COOKIE, makeCookieValue(session, token), {
       httpOnly: true,
-      secure: isProd,
-      sameSite: "lax",
       path: "/",
       maxAge: env.SESSION_TTL_HOURS * 3_600_000,
+      ...SESSION_COOKIE_SAMESITE,
     });
     ok(res, { user: toPublicUser(user) });
   }),
@@ -36,7 +36,9 @@ authRoutes.post(
   requireAuth,
   wrap(async (req, res) => {
     if (req.sessionId) await destroySession(req.sessionId);
-    res.clearCookie(SESSION_COOKIE, { path: "/" });
+    // Clearing a cookie only works when the attributes match the ones it was set
+    // with (path + sameSite + secure).
+    res.clearCookie(SESSION_COOKIE, { path: "/", ...SESSION_COOKIE_SAMESITE });
     noContent(res);
   }),
 );

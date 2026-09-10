@@ -2,6 +2,11 @@
 # New → Blueprint → point at this repo. Fill the secret values in the dashboard
 # (they are marked sync: false and are NOT stored in git).
 #
+# This file only takes effect for a Blueprint deployment. If the service was
+# created from the dashboard ("New → Web Service"), set its Build Command to the
+# same `buildCommand` value below, and its Start / Pre-Deploy / Health-Check to
+# match — otherwise this file is ignored.
+#
 # See ../DEPLOYMENT.md for the full walkthrough, including the managed Postgres
 # and the frontend.
 services:
@@ -10,7 +15,11 @@ services:
     runtime: node
     rootDir: server
     plan: free
-    buildCommand: npm install && npm run build
+    # `npm ci` does a clean install straight from package-lock.json every build,
+    # so a stale build cache can never leave a dependency (e.g. typescript)
+    # missing. typescript + @types/* are in "dependencies", so they install even
+    # with NODE_ENV=production.
+    buildCommand: npm ci && npm run build
     preDeployCommand: npm run db:migrate:prod
     startCommand: npm start
     healthCheckPath: /api/health

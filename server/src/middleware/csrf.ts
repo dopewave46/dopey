@@ -1,7 +1,7 @@
 import type { NextFunction, Request, Response } from "express";
 import { newCsrfToken } from "../utils/ids.js";
 import { ForbiddenError } from "../utils/errors.js";
-import { isProd } from "../config/env.js";
+import { SESSION_COOKIE_SAMESITE } from "../config/cookies.js";
 import { SESSION_COOKIE } from "./auth.js";
 
 export const CSRF_COOKIE = "orca_csrf";
@@ -12,7 +12,9 @@ const SAFE_METHODS = new Set(["GET", "HEAD", "OPTIONS"]);
  * Double-submit-cookie CSRF protection (spec Section O). A readable `orca_csrf`
  * cookie is issued on every safe request; the frontend echoes it back in the
  * `X-CSRF-Token` header on POST/PATCH/DELETE. An attacker's site cannot read
- * our cookie, so it cannot forge the header.
+ * our cookie, so it cannot forge the header. (In production the cookie is
+ * `SameSite=None; Secure` so the SPA on another domain can still read it —
+ * see `config/cookies.ts`.)
  *
  * The check only applies to authenticated requests (a session cookie is
  * present) — an unauthenticated POST such as `/api/auth/login` is the bootstrap
@@ -22,7 +24,7 @@ export function csrf(req: Request, res: Response, next: NextFunction): void {
   let token = req.cookies?.[CSRF_COOKIE] as string | undefined;
   if (!token) {
     token = newCsrfToken();
-    res.cookie(CSRF_COOKIE, token, { httpOnly: false, secure: isProd, sameSite: "lax", path: "/" });
+    res.cookie(CSRF_COOKIE, token, { httpOnly: false, path: "/", ...SESSION_COOKIE_SAMESITE });
   }
 
   if (SAFE_METHODS.has(req.method)) return next();

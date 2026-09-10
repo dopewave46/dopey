@@ -30,18 +30,27 @@ click / one CLI command). That is enough for v1.
 ### 2.1 Create the service
 - New → **Web Service** → connect this repo.
 - **Root Directory:** `server`
-- **Build Command:** `npm install && npm run build`
+- **Build Command:** `npm ci && npm run build`
 - **Pre-Deploy Command:** `npm run db:migrate:prod`  *(applies migrations before the new version goes live)*
 - **Start Command:** `npm start`
 - **Health Check Path:** `/api/health`
 
-`server/render.yaml` in this repo captures the same settings as a Blueprint if
-you prefer "New → Blueprint".
+`server/render.yaml` captures exactly these settings — but **only for a Blueprint
+deployment** ("New → Blueprint"). A dashboard-created Web Service ignores
+`render.yaml`; set its Build Command by hand to match.
 
 > The build needs `typescript` and the `@types/*` packages, so they live in
-> `dependencies` (not `devDependencies`) — `npm install` with `NODE_ENV=production`
-> still installs them. Truly dev-only tools (`tsx`, `drizzle-kit`, `pino-pretty`,
+> `dependencies` (not `devDependencies`) — they install even with
+> `NODE_ENV=production`. Dev-only tools (`tsx`, `drizzle-kit`, `pino-pretty`,
 > `embedded-postgres`) stay in `devDependencies` and are not shipped to prod.
+>
+> **If the build fails with `sh: 1: tsc: not found`:** the committed
+> `package.json` + `package-lock.json` are correct (verified: `NODE_ENV=production
+> npm ci && npm run build` produces `dist/`). The cause is environmental —
+> 1. **Clear the build cache**: Render → *Manual Deploy* → *Clear build cache & deploy*.
+>    A cache from an earlier (pre-fix) build can leave `typescript` absent.
+> 2. Confirm the Build Command is `npm ci && npm run build` (not just `npm install`).
+> 3. Confirm the latest commit is on the branch Render deploys.
 
 ### 2.2 Environment variables (Render dashboard → Environment)
 
