@@ -4,8 +4,12 @@
  * The single seam between the frontend and the Express + PostgreSQL backend.
  * Every module calls through `api.*` — no component ever calls `fetch` directly.
  *
- *  - Base URL from `VITE_API_URL` (default `http://localhost:4000/api`).
- *  - `credentials: "include"` so the httpOnly `orca_session` cookie always rides.
+ *  - Base URL: in production, always the relative `/api` — requests stay
+ *    same-origin and go through the Vercel rewrite proxy (see `vercel.json`)
+ *    to the Render backend, so `orca_session`/`orca_csrf` are never treated
+ *    as third-party cookies. In dev, `VITE_API_URL` (default
+ *    `http://localhost:4000/api`).
+ * - `credentials: "include"` so the httpOnly `orca_session` cookie always rides.
  *  - CSRF: the readable `orca_csrf` cookie is echoed as `X-CSRF-Token` on every
  *    POST/PATCH/PUT/DELETE, automatically, here — nowhere else.
  *  - The backend envelope (`{ data }` / `{ error: { message, code, details? } }`)
@@ -14,10 +18,13 @@
  *    layer uses it to drop session state and route to /login).
  */
 
-const BASE_URL =
-  import.meta.env.VITE_API_URL ??
-  import.meta.env.VITE_API_BASE_URL ??
-  "http://localhost:4000/api";
+// Production always goes through the Vercel same-origin proxy (`/api/:path*`
+// rewrite in vercel.json) instead of calling the Render backend cross-origin
+// — that's what keeps the session/CSRF cookies first-party on mobile Chrome
+// and everywhere else that blocks third-party cookies.
+const BASE_URL = import.meta.env.PROD
+  ? "/api"
+  : import.meta.env.VITE_API_URL ?? import.meta.env.VITE_API_BASE_URL ?? "http://localhost:4000/api";
 
 export type ApiErrorCode =
   | "validation_error"

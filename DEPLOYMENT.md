@@ -93,22 +93,36 @@ DATABASE_URL="<neon-url>" USE_EMBEDDED_PG=false npm run db:seed
 - New Project → import this repo.
 - **Framework Preset:** Vite. **Root Directory:** repo root (leave blank).
 - **Build Command:** `npm run build` → **Output Directory:** `dist`
-- **Environment variable:** `VITE_API_URL = https://<your-backend-domain>/api`
-- `vercel.json` in this repo rewrites all paths to `index.html` so deep links
-  (`/projects/proj-02`, a hard refresh on any route) work on the static host.
+- No `VITE_API_URL` env var needed — in production the frontend always calls
+  the relative `/api`, which `vercel.json` rewrites to the Render backend
+  (see below). This keeps every API request **same-origin** from the
+  browser's point of view, so `orca_session`/`orca_csrf` are never sent as
+  third-party cookies — this is what fixes the mobile Chrome login bounce and
+  "request could not be verified" CSRF errors on Vercel/Render's separate
+  domains.
+- `vercel.json` has two rewrites, in order:
+  1. `/api/:path*` → `https://dopeorca-backend.onrender.com/api/:path*` (the
+     proxy — **update this destination if your Render service has a
+     different name**)
+  2. `/(.*)` → `/index.html` (SPA deep-link fallback)
 
 Deploy. Then open the frontend URL — it should show the login screen.
 
-## 4. Lock CORS to the real frontend
+## 4. CORS
 
-Once the frontend domain is known, set the backend's `CORS_ORIGIN` to exactly
-that origin (e.g. `https://orca.dopeorca.tech`) and redeploy the backend. The
-permissive "any localhost port" matching only applies when `NODE_ENV !==
-production`, so a production deploy is already strict — this step just points it
-at the right domain.
+`CORS_ORIGIN` on the backend can stay set to the deployed frontend origin
+(e.g. `https://orca.dopeorca.tech`) as before — it's a harmless safety net.
+It's no longer load-bearing for browser requests though: because the browser
+now calls the Vercel domain's own `/api/*` and Vercel's server-to-server
+rewrite forwards to Render, the browser never makes a cross-origin request to
+Render at all, so CORS headers aren't consulted for those calls. Only direct
+non-proxied calls to the Render URL (e.g. `curl`, a health check) go through
+CORS. The permissive "any localhost port" matching still only applies when
+`NODE_ENV !== production`.
 
-For a custom domain: add it in Vercel (frontend) and/or Render (backend), then
-update `CORS_ORIGIN` and `VITE_API_URL` to match and redeploy both.
+If you rename or move the Vercel frontend domain, update the rewrite
+destination in `vercel.json` if the backend URL changes, and `CORS_ORIGIN` on
+Render to match the new frontend origin.
 
 ## 5. Verify live (repeat the core flows against production URLs)
 
