@@ -39,9 +39,11 @@ export function formatCurrencyShort(value: number): string {
   return `${sign}₹${Math.round(abs)}`;
 }
 
-/** "7 Sep 2026" */
-export function formatDate(date: Date | string): string {
+/** "7 Sep 2026" — "—" for a missing/invalid date rather than throwing. */
+export function formatDate(date: Date | string | null | undefined): string {
+  if (!date) return "—";
   const d = typeof date === "string" ? new Date(date) : date;
+  if (Number.isNaN(d.getTime())) return "—";
   return new Intl.DateTimeFormat(LOCALE, {
     day: "numeric",
     month: "short",

@@ -41,7 +41,7 @@ export function ProjectFlowCard({ projects }: { projects: ProjectSnapshot[] }) {
               />
             </div>
             <div className={cn(s.projectDue, p.overdue && s.overdue)}>
-              {p.overdue ? "Overdue" : `Due ${formatDate(p.dueDate)}`}
+              {p.overdue ? "Overdue" : p.dueDate ? `Due ${formatDate(p.dueDate)}` : "No deadline"}
             </div>
           </div>
         ))}
