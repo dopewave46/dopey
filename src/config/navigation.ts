@@ -22,6 +22,8 @@ export const NAV_ITEMS: NavItem[] = [
   { label: "Finance", to: "/finance", icon: "finance" },
   { label: "Analytics", to: "/analytics", icon: "analytics" },
   { label: "Maintenance / AMC", to: "/amc", icon: "maintenance" },
+  { label: "Outreach", to: "/outreach", icon: "phone" },
+  { label: "45-Day Mission", to: "/mission", icon: "flag" },
   { label: "Settings", to: "/settings", icon: "settings" },
 ];
 

@@ -11,6 +11,8 @@ import { taskRoutes } from "./tasks.routes.js";
 import { financeRoutes } from "./finance.routes.js";
 import { analyticsRoutes } from "./analytics.routes.js";
 import { amcRoutes } from "./amc.routes.js";
+import { outreachRoutes } from "./outreach.routes.js";
+import { missionRoutes } from "./mission.routes.js";
 import { dashboardRoutes, notificationRoutes, searchRoutes, settingsRoutes } from "./misc.routes.js";
 
 /**
@@ -36,6 +38,8 @@ api.use("/tasks", taskRoutes);
 api.use("/finance", financeRoutes);
 api.use("/analytics", analyticsRoutes);
 api.use("/amc", amcRoutes);
+api.use("/outreach", outreachRoutes);
+api.use("/mission", missionRoutes);
 api.use("/settings", settingsRoutes);
 api.use("/notifications", notificationRoutes);
 api.use("/search", searchRoutes);

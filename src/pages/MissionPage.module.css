@@ -1,0 +1,42 @@
+.phaseGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--s-4);
+  margin-bottom: var(--s-5);
+  align-items: start;
+}
+
+.phaseBody {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.phaseFigures {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+
+.phaseValue {
+  font: var(--t-section);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.phaseTarget {
+  font: var(--t-meta);
+  color: var(--muted);
+}
+
+.overallLine {
+  font: var(--t-body-lg);
+  font-weight: 500;
+  margin-bottom: var(--s-3);
+}
+
+@media (max-width: 1023px) {
+  .phaseGrid {
+    grid-template-columns: 1fr;
+  }
+}

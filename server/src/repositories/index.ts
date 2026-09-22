@@ -8,6 +8,7 @@ import type {
   Invoice,
   Lead,
   Notification,
+  OutreachLog,
   Payment,
   Project,
   ProjectStage,
@@ -48,6 +49,7 @@ export const db = {
   amcTasks: new DbRepository<AmcTask>(t.amcTasks, "amcTasks"),
   activities: new DbRepository<Activity>(t.activities, "activities"),
   notifications: new DbRepository<Notification>(t.notifications, "notifications"),
+  outreachLogs: new DbRepository<OutreachLog>(t.outreachLogs, "outreachLogs"),
   settings: new DbKeyValue(),
 };
 

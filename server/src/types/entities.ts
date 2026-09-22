@@ -294,6 +294,17 @@ export interface Notification {
   createdAt: ISODateString;
 }
 
+/** Daily outreach habit log — one row per calendar day (45-Day Mission module). */
+export interface OutreachLog extends Timestamped {
+  id: ID;
+  /** Local calendar day, "YYYY-MM-DD" — unique. */
+  date: string;
+  callsMade: number;
+  callsTarget: number;
+  instagramPosted: boolean;
+  notes?: string;
+}
+
 /** Single-row-per-key store (spec Section G — Setting). */
 export interface Setting {
   key: string;

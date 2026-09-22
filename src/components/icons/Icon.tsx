@@ -38,7 +38,9 @@ export type IconName =
   | "more"
   | "external-link"
   | "orca"
-  | "circle-dot";
+  | "circle-dot"
+  | "phone"
+  | "flag";
 
 const PATHS: Record<IconName, JSX.Element> = {
   dashboard: (
@@ -192,6 +194,15 @@ const PATHS: Record<IconName, JSX.Element> = {
     <>
       <circle cx="12" cy="12" r="9" />
       <circle cx="12" cy="12" r="3" fill="currentColor" stroke="none" />
+    </>
+  ),
+  phone: (
+    <path d="M6.6 10.8c1.4 2.8 3.8 5.2 6.6 6.6l2.2-2.2a1 1 0 0 1 1-.2c1.1.4 2.3.6 3.6.6a1 1 0 0 1 1 1V20a1 1 0 0 1-1 1C10.6 21 3 13.4 3 4a1 1 0 0 1 1-1h3.2a1 1 0 0 1 1 1c0 1.3.2 2.5.6 3.6a1 1 0 0 1-.2 1z" />
+  ),
+  flag: (
+    <>
+      <path d="M6 21V4" />
+      <path d="M6 4h11l-2.5 3.5L17 11H6" />
     </>
   ),
 };

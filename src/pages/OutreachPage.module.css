@@ -1,0 +1,114 @@
+.topGrid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: var(--s-4);
+  margin-bottom: var(--s-5);
+  align-items: start;
+}
+
+.entry {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.callsRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  flex-wrap: wrap;
+}
+
+.callsLabel {
+  font: var(--t-body);
+  font-weight: 600;
+  color: var(--charcoal);
+}
+
+.stepper {
+  display: flex;
+  align-items: center;
+  gap: var(--s-2);
+}
+
+.stepBtn {
+  width: 32px;
+  height: 32px;
+  border-radius: var(--r-control);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--charcoal);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+.stepBtn:hover {
+  border-color: var(--crimson);
+  color: var(--crimson);
+}
+
+.callsInput {
+  width: 64px;
+  height: 32px;
+  text-align: center;
+  font: var(--t-card);
+  font-variant-numeric: tabular-nums;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-control);
+  background: var(--surface);
+  color: var(--charcoal);
+}
+.callsInput:focus-visible {
+  outline: none;
+  border-color: var(--crimson);
+  box-shadow: var(--focus-ring);
+}
+
+.callsTarget {
+  font: var(--t-meta);
+  color: var(--muted);
+  margin-left: var(--s-1);
+}
+
+.instaRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  font: var(--t-body);
+  color: var(--charcoal);
+  width: fit-content;
+}
+
+.checkbox {
+  width: 18px;
+  height: 18px;
+  border-radius: 6px;
+  border: 1.5px solid var(--border-strong);
+  display: grid;
+  place-items: center;
+  flex: none;
+  color: #fff;
+  transition:
+    background var(--dur-fast) var(--ease),
+    border-color var(--dur-fast) var(--ease);
+}
+.checkbox[data-checked="true"] {
+  background: var(--crimson);
+  border-color: var(--crimson);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+@media (max-width: 1023px) {
+  .topGrid {
+    grid-template-columns: 1fr;
+  }
+}

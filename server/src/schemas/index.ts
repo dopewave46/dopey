@@ -264,6 +264,18 @@ export const amcSchemas = {
   addTask: { params: idParam, body: z.object({ title: z.string().trim().min(1), dueDate: isoDate.optional() }) },
 };
 
+/* ---------------- outreach ---------------- */
+export const outreachSchemas = {
+  updateToday: {
+    body: z.object({
+      callsMade: z.coerce.number().int().min(0).optional(),
+      instagramPosted: z.boolean().optional(),
+      notes: z.string().trim().optional(),
+    }),
+  },
+  history: { query: z.object({ limit: z.coerce.number().int().positive().max(365).optional() }) },
+};
+
 /* ---------------- settings ---------------- */
 export const settingsSchemas = {
   update: { body: z.record(z.string(), z.unknown()) },

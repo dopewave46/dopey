@@ -18,6 +18,7 @@ import { SalesPipelineCard } from "@/components/dashboard/SalesPipelineCard";
 import { TodayTasksCard } from "@/components/dashboard/TodayTasksCard";
 import { RecentActivityCard } from "@/components/dashboard/RecentActivityCard";
 import { ProjectFlowCard } from "@/components/dashboard/ProjectFlowCard";
+import { OutreachMissionCard } from "@/components/dashboard/OutreachMissionCard";
 import s from "@/components/dashboard/sections.module.css";
 
 export function DashboardPage() {
@@ -84,6 +85,10 @@ export function DashboardPage() {
 
           <div className={s.full}>
             <ProjectFlowCard projects={data.projects} />
+          </div>
+
+          <div className={s.full}>
+            <OutreachMissionCard />
           </div>
         </>
       )}

@@ -4,6 +4,8 @@ import { projectStore } from "./projectStore";
 import { financeStore } from "./financeStore";
 import { taskStore } from "./taskStore";
 import { amcStore } from "./amcStore";
+import { outreachStore } from "./outreachStore";
+import { missionStore } from "./missionStore";
 import type { StoreStatus } from "./storeStatus";
 
 /**
@@ -17,7 +19,7 @@ import type { StoreStatus } from "./storeStatus";
  * stores); each mutation refreshes its own slice.
  */
 
-const STORES = [crmStore, projectStore, financeStore, taskStore, amcStore] as const;
+const STORES = [crmStore, projectStore, financeStore, taskStore, amcStore, outreachStore, missionStore] as const;
 
 export async function hydrateAll(): Promise<void> {
   await Promise.all(STORES.map((s) => s.hydrate()));

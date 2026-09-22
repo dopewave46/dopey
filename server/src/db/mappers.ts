@@ -44,6 +44,7 @@ export const SHAPES = {
   followUps: M([], ["dueDate", "completedAt"], false),
   activities: M([], ["createdAt"], false),
   notifications: M([], ["createdAt"], false),
+  outreachLogs: M([], ["createdAt", "updatedAt"]),
 } as const;
 
 export type TableName = keyof typeof SHAPES;

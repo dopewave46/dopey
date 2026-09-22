@@ -394,6 +394,27 @@ export const notifications = pgTable(
 );
 
 /* ------------------------------------------------------------------ */
+/* outreach_logs — daily call/Instagram habit log (45-Day Mission)    */
+/* ------------------------------------------------------------------ */
+
+export const outreachLogs = pgTable(
+  "outreach_logs",
+  {
+    id: text("id").primaryKey(),
+    // Local calendar day ("YYYY-MM-DD"), not a timestamp — one row per day,
+    // enforced here with a real UNIQUE constraint (mirrors settings.key).
+    date: text("date").notNull().unique(),
+    callsMade: integer("calls_made").notNull().default(0),
+    callsTarget: integer("calls_target").notNull().default(30),
+    instagramPosted: boolean("instagram_posted").notNull().default(false),
+    notes: text("notes"),
+    createdAt: ts("created_at").notNull(),
+    updatedAt: ts("updated_at").notNull(),
+  },
+  (t) => [index("outreach_logs_date_idx").on(t.date)],
+);
+
+/* ------------------------------------------------------------------ */
 /* settings — key/value                                               */
 /* ------------------------------------------------------------------ */
 
@@ -419,5 +440,6 @@ export const schema = {
   followUps,
   activities,
   notifications,
+  outreachLogs,
   settings,
 };

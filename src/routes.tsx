@@ -20,6 +20,8 @@ import { ExpensesPage } from "@/pages/finance/ExpensesPage";
 import { AnalyticsPage } from "@/pages/AnalyticsPage";
 import { AmcPage } from "@/pages/AmcPage";
 import { AmcDetailPage } from "@/pages/AmcDetailPage";
+import { OutreachPage } from "@/pages/OutreachPage";
+import { MissionPage } from "@/pages/MissionPage";
 import { SettingsPage } from "@/pages/SettingsPage";
 import { NotificationsPage } from "@/pages/NotificationsPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
@@ -58,6 +60,8 @@ export const router = createBrowserRouter([
       { path: "amc", element: <AmcPage /> },
       { path: "amc/:id", element: <AmcDetailPage /> },
       { path: "maintenance", element: <Navigate to="/amc" replace /> },
+      { path: "outreach", element: <OutreachPage /> },
+      { path: "mission", element: <MissionPage /> },
       { path: "settings", element: <SettingsPage /> },
       { path: "notifications", element: <NotificationsPage /> },
       { path: "*", element: <NotFoundPage /> },
