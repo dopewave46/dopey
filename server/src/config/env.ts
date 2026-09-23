@@ -21,7 +21,7 @@ const schema = z.object({
   // One origin, or a comma-separated list. In development, any localhost /
   // 127.0.0.1 port is also allowed (Vite hops ports when one is busy).
   CORS_ORIGIN: z.string().default("http://localhost:5173"),
-  DATABASE_URL: z.string().default("postgres://postgres:postgres@localhost:5432/dopeorca_os"),
+  DATABASE_URL: z.string().default("postgresql://neondb_owner:npg_h3cfqOmRIno6@ep-small-poetry-aebix0c9-pooler.c-2.us-east-2.aws.neon.tech/neondb?sslmode=require&channel_binding=require"),
   // Dev only: run a local embedded Postgres (no Docker/install). Ignored in production.
   USE_EMBEDDED_PG: z
     .enum(["true", "false"])

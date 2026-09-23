@@ -1,0 +1,96 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+  max-width: 760px;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-4);
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--border);
+}
+.headerTitle {
+  font: var(--t-card);
+}
+.hint {
+  font: var(--t-meta);
+  color: var(--muted);
+  padding: var(--s-4) var(--s-5);
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.item {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--s-3);
+  padding: var(--s-4) var(--s-5);
+  border-bottom: 1px solid var(--border);
+}
+.item:last-child {
+  border-bottom: 0;
+}
+
+.itemBody {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.itemHead {
+  display: flex;
+  align-items: baseline;
+  gap: var(--s-2);
+}
+.itemTitle {
+  font: var(--t-body);
+  font-weight: 600;
+}
+.itemPct {
+  font: var(--t-meta);
+  font-weight: 700;
+  color: var(--crimson);
+}
+.itemNote {
+  font: var(--t-body);
+  color: var(--slate);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+.itemDate {
+  font: var(--t-meta);
+  color: var(--muted);
+}
+
+.deleteBtn {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-control);
+  border: 1px solid transparent;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  flex: none;
+}
+.deleteBtn:hover {
+  color: var(--error);
+  border-color: var(--error-border);
+  background: var(--error-bg);
+}

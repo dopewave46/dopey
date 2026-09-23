@@ -1,0 +1,80 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 200;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s-4);
+  background: var(--bg);
+  opacity: 1;
+  transition: opacity 400ms var(--ease);
+}
+.overlay.leaving {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.mark {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  opacity: 0;
+  transform: translateY(10px) scale(0.96);
+  animation: markIn 550ms var(--ease) forwards;
+}
+
+.glyph {
+  display: grid;
+  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: var(--r-card);
+  background: var(--crimson);
+  color: var(--surface);
+  box-shadow: var(--sh-lg);
+  flex: none;
+}
+
+.wordmark {
+  font: var(--t-section);
+  font-weight: 700;
+  color: var(--charcoal);
+  letter-spacing: 0.01em;
+}
+
+.welcome {
+  margin: 0;
+  padding: 0 var(--s-5);
+  text-align: center;
+  font: var(--t-card);
+  color: var(--slate);
+  opacity: 0;
+  transform: translateY(8px);
+  animation: textIn 500ms var(--ease) 380ms forwards;
+}
+
+@keyframes markIn {
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes textIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 420px) {
+  .glyph {
+    width: 48px;
+    height: 48px;
+  }
+  .wordmark {
+    font-size: 18px;
+  }
+}

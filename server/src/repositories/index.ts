@@ -10,8 +10,11 @@ import type {
   Notification,
   OutreachLog,
   Payment,
+  PortalCredential,
+  PortalSession,
   Project,
   ProjectStage,
+  ProjectUpdate,
   Session,
   Task,
   User,
@@ -51,6 +54,9 @@ export const db = {
   notifications: new DbRepository<Notification>(t.notifications, "notifications"),
   outreachLogs: new DbRepository<OutreachLog>(t.outreachLogs, "outreachLogs"),
   settings: new DbKeyValue(),
+  portalCredentials: new DbRepository<PortalCredential>(t.portalCredentials, "portalCredentials"),
+  portalSessions: new DbRepository<PortalSession>(t.portalSessions, "portalSessions"),
+  projectUpdates: new DbRepository<ProjectUpdate>(t.projectUpdates, "projectUpdates"),
 };
 
 export type Db = typeof db;

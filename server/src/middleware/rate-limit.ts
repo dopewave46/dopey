@@ -14,6 +14,15 @@ export const authLimiter = rateLimit({
   message: limitedBody,
 });
 
+/** Tight limit on the client-portal login — identical shape to `authLimiter`. */
+export const portalLoginLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  limit: 20,
+  standardHeaders: true,
+  legacyHeaders: false,
+  message: limitedBody,
+});
+
 /** Search can be called on every keystroke — keep it generous but bounded. */
 export const searchLimiter = rateLimit({
   windowMs: 60 * 1000,

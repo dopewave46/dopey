@@ -2,7 +2,7 @@ import { Router } from "express";
 import { wrap } from "../utils/wrap.js";
 import { created, noContent, ok } from "../utils/envelope.js";
 import { validate } from "../middleware/validate.js";
-import { projectSchemas } from "../schemas/index.js";
+import { projectSchemas, projectUpdateSchemas } from "../schemas/index.js";
 import {
   createProject,
   deleteProject,
@@ -16,6 +16,7 @@ import {
 import { listTasks } from "../services/task.service.js";
 import { listActivities } from "../services/activity.service.js";
 import { projectFinance } from "../services/finance.service.js";
+import { addProjectUpdate, deleteProjectUpdate, listProjectUpdates } from "../services/project-update.service.js";
 
 export const projectRoutes = Router();
 
@@ -41,3 +42,19 @@ projectRoutes.post("/:id/stages/:stageId", validate(projectSchemas.setStage), wr
 projectRoutes.get("/:id/tasks", wrap(async (req, res) => ok(res, await listTasks({ projectId: req.params.id }))));
 projectRoutes.get("/:id/finance", wrap(async (req, res) => ok(res, await projectFinance(req.params.id))));
 projectRoutes.get("/:id/activity", wrap(async (req, res) => ok(res, await listActivities({ entityType: "project", entityId: req.params.id }))));
+
+/* Client-portal timeline updates (spec §4) — the admin view of the same data the client sees. */
+projectRoutes.get("/:id/updates", wrap(async (req, res) => ok(res, await listProjectUpdates(req.params.id))));
+projectRoutes.post(
+  "/:id/updates",
+  validate(projectUpdateSchemas.create),
+  wrap(async (req, res) => created(res, await addProjectUpdate(req.params.id, req.body))),
+);
+projectRoutes.delete(
+  "/:id/updates/:updateId",
+  validate({ params: projectUpdateSchemas.removeParams }),
+  wrap(async (req, res) => {
+    await deleteProjectUpdate(req.params.id, req.params.updateId);
+    noContent(res);
+  }),
+);

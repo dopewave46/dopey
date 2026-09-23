@@ -45,6 +45,9 @@ export const SHAPES = {
   activities: M([], ["createdAt"], false),
   notifications: M([], ["createdAt"], false),
   outreachLogs: M([], ["createdAt", "updatedAt"]),
+  portalCredentials: M([], ["createdAt", "updatedAt"]),
+  portalSessions: M([], ["createdAt", "expiresAt"], false),
+  projectUpdates: M([], ["createdAt"], false),
 } as const;
 
 export type TableName = keyof typeof SHAPES;

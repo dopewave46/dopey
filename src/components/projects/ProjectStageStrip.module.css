@@ -41,6 +41,20 @@
   font-weight: 700;
 }
 
+/* Opt-in current-stage pulse — off by default so admin usage is unaffected. */
+.glow .current .bar {
+  animation: stagePulse 2.2s var(--ease) infinite;
+}
+@keyframes stagePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 0 3px var(--crimson-tint);
+  }
+  50% {
+    box-shadow: 0 0 0 6px var(--crimson-tint-strong);
+  }
+}
+
 .held {
   opacity: 0.5;
 }

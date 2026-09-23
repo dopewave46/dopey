@@ -424,6 +424,53 @@ export const settings = pgTable("settings", {
   updatedAt: ts("updated_at").notNull().defaultNow(),
 });
 
+/* ------------------------------------------------------------------ */
+/* client portal — separate auth + read-only project tracking          */
+/* ------------------------------------------------------------------ */
+
+export const portalCredentials = pgTable(
+  "portal_credentials",
+  {
+    id: text("id").primaryKey(),
+    clientId: text("client_id")
+      .notNull()
+      .references(() => clients.id, { onDelete: "cascade" }),
+    username: text("username").notNull().unique(),
+    passwordHash: text("password_hash").notNull(),
+    enabled: boolean("enabled").notNull().default(true),
+    createdAt: ts("created_at").notNull(),
+    updatedAt: ts("updated_at").notNull(),
+  },
+  (t) => [index("portal_credentials_client_id_idx").on(t.clientId)],
+);
+
+/** Opaque portal sessions — fully separate from admin `sessions` (spec §3). */
+export const portalSessions = pgTable("portal_sessions", {
+  id: text("id").primaryKey(),
+  clientId: text("client_id")
+    .notNull()
+    .references(() => clients.id, { onDelete: "cascade" }),
+  createdAt: ts("created_at").notNull(),
+  expiresAt: ts("expires_at").notNull(),
+  userAgent: text("user_agent"),
+  ip: text("ip"),
+});
+
+export const projectUpdates = pgTable(
+  "project_updates",
+  {
+    id: text("id").primaryKey(),
+    projectId: text("project_id")
+      .notNull()
+      .references(() => projects.id, { onDelete: "cascade" }),
+    title: text("title").notNull(),
+    note: text("note"),
+    percentAtUpdate: integer("percent_at_update"),
+    createdAt: ts("created_at").notNull(),
+  },
+  (t) => [index("project_updates_project_id_idx").on(t.projectId)],
+);
+
 export const schema = {
   users,
   sessions,
@@ -442,4 +489,7 @@ export const schema = {
   notifications,
   outreachLogs,
   settings,
+  portalCredentials,
+  portalSessions,
+  projectUpdates,
 };

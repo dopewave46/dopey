@@ -1,0 +1,85 @@
+.hint {
+  font: var(--t-meta);
+  color: var(--muted);
+}
+
+.empty,
+.existing,
+.reveal {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.credRow {
+  display: grid;
+  grid-template-columns: 90px 1fr auto;
+  align-items: center;
+  gap: var(--s-3);
+}
+
+.credLabel {
+  font: var(--t-meta);
+  color: var(--muted);
+}
+
+.credValue {
+  font: var(--t-body);
+  font-weight: 600;
+  background: var(--surface-2);
+  border: 1px solid var(--border);
+  border-radius: var(--r-tag);
+  padding: 6px 10px;
+  overflow-wrap: anywhere;
+}
+
+.copyBtn {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: var(--r-control);
+  border: 1px solid var(--border-strong);
+  background: var(--surface);
+  color: var(--slate);
+  cursor: pointer;
+}
+.copyBtn:hover {
+  border-color: var(--crimson);
+  color: var(--crimson);
+}
+
+.revealWarning {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font: var(--t-meta);
+  font-weight: 600;
+  color: var(--warning);
+  margin: 0;
+}
+
+.statusOn {
+  font: var(--t-body);
+  font-weight: 600;
+  color: var(--success);
+}
+.statusOff {
+  font: var(--t-body);
+  font-weight: 600;
+  color: var(--muted);
+}
+
+.actions {
+  display: flex;
+  gap: var(--s-2);
+}
+
+@media (max-width: 480px) {
+  .credRow {
+    grid-template-columns: 1fr auto;
+  }
+  .credLabel {
+    grid-column: 1 / -1;
+  }
+}

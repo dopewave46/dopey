@@ -8,12 +8,12 @@ import styles from "./ProjectStageStrip.module.css";
  * linear pipeline with the current stage highlighted. Used on the Overview tab.
  * "On Hold" is a state, not a stage, so it dims the whole strip.
  */
-export function ProjectStageStrip({ status }: { status: ProjectStatus }) {
+export function ProjectStageStrip({ status, glow = false }: { status: ProjectStatus; glow?: boolean }) {
   const currentIndex = PROJECT_STAGE_FLOW.indexOf(status);
   const onHold = status === "on_hold";
 
   return (
-    <div className={cn(styles.strip, onHold && styles.held)} aria-label="Project stage">
+    <div className={cn(styles.strip, onHold && styles.held, glow && styles.glow)} aria-label="Project stage">
       {PROJECT_STAGE_FLOW.map((stage, i) => {
         const done = currentIndex >= 0 && i < currentIndex;
         const current = currentIndex >= 0 && i === currentIndex;

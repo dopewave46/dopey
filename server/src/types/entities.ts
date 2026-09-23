@@ -312,6 +312,38 @@ export interface Setting {
   updatedAt: ISODateString;
 }
 
+/* ------------------------------------------------------------------ */
+/* Client portal (read-only project tracking, separate auth)          */
+/* ------------------------------------------------------------------ */
+
+export interface PortalCredential extends Timestamped {
+  id: ID;
+  clientId: ID;
+  username: string;
+  enabled: boolean;
+  /** backend-only */
+  passwordHash: string;
+}
+
+/** Never leaves the server. */
+export interface PortalSession {
+  id: ID;
+  clientId: ID;
+  createdAt: ISODateString;
+  expiresAt: ISODateString;
+  userAgent?: string;
+  ip?: string;
+}
+
+export interface ProjectUpdate {
+  id: ID;
+  projectId: ID;
+  title: string;
+  note?: string;
+  percentAtUpdate?: number;
+  createdAt: ISODateString;
+}
+
 /** Convenience view of the settings store the frontend consumes. */
 export interface AgencySettings {
   agencyName: string;

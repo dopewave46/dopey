@@ -2,6 +2,7 @@ import { Router } from "express";
 import { requireAuth } from "../middleware/auth.js";
 import { apiLimiter } from "../middleware/rate-limit.js";
 import { authRoutes } from "./auth.routes.js";
+import { portalRoutes } from "./portal.routes.js";
 import { healthRoutes } from "./health.routes.js";
 import { leadRoutes } from "./leads.routes.js";
 import { clientRoutes } from "./clients.routes.js";
@@ -24,6 +25,9 @@ export const api = Router();
 
 api.use("/health", healthRoutes);
 api.use("/auth", authRoutes);
+// Client portal — its own auth system (`requirePortalAuth`), never behind the
+// admin `requireAuth` gate mounted below.
+api.use("/portal", portalRoutes);
 
 // --- authenticated ---
 api.use(requireAuth);

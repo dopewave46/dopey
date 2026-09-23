@@ -1,0 +1,164 @@
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-5);
+}
+
+.pageTitle {
+  font: var(--t-section);
+  color: var(--charcoal);
+}
+
+.pickerList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-2);
+}
+.pickerItem {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-4);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  box-shadow: var(--sh-sm);
+  font: var(--t-body);
+  font-weight: 600;
+  color: var(--charcoal);
+  cursor: pointer;
+  text-align: left;
+}
+.pickerItem:hover {
+  border-color: var(--crimson);
+}
+.pickerMeta {
+  font: var(--t-meta);
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  align-self: flex-start;
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font: var(--t-meta);
+  font-weight: 600;
+  cursor: pointer;
+  padding: 4px 0;
+}
+.backLink:hover {
+  color: var(--crimson);
+}
+
+/* Top project card — a touch more presence: crimson accent bar along the top edge. */
+.projectCard {
+  position: relative;
+  overflow: hidden;
+}
+.projectCard::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--crimson), var(--crimson-hover));
+}
+
+.progressRow {
+  display: flex;
+  align-items: center;
+  gap: var(--s-3);
+  margin-top: var(--s-4);
+}
+.progressRow > :first-child {
+  flex: 1;
+}
+.progressPct {
+  font: var(--t-section);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--crimson);
+  flex: none;
+}
+
+.deadline {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: var(--s-3) 0 0;
+  font: var(--t-meta);
+  color: var(--muted);
+}
+
+.updatesHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.sectionTitle {
+  font: var(--t-card);
+  color: var(--charcoal);
+}
+
+.timeline {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s-3);
+}
+
+.updateCard {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--r-card);
+  padding: var(--s-4);
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.updateCardAnim {
+  opacity: 0;
+  transform: translateY(8px);
+  animation: updateIn 420ms var(--ease) forwards;
+}
+@keyframes updateIn {
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.updateHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s-2);
+}
+.updateTitle {
+  font: var(--t-body);
+  font-weight: 700;
+  color: var(--charcoal);
+}
+.updatePct {
+  font: var(--t-meta);
+  font-weight: 700;
+  color: var(--crimson);
+  flex: none;
+}
+.updateNote {
+  font: var(--t-body);
+  color: var(--slate);
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  margin: 0;
+}
+.updateDate {
+  font: var(--t-meta);
+  color: var(--muted);
+}

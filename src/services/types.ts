@@ -280,3 +280,40 @@ export interface AgencySettings {
   currency: "INR";
   admin: User;
 }
+
+/* ------------------------------------------------------------------ */
+/* Client portal (read-only project tracking, separate auth)          */
+/* ------------------------------------------------------------------ */
+
+/** Admin-facing view — never the password/hash. */
+export interface PortalCredentialInfo {
+  username: string;
+  enabled: boolean;
+}
+
+export interface ProjectUpdate {
+  id: ID;
+  projectId: ID;
+  title: string;
+  note?: string;
+  percentAtUpdate?: number;
+  createdAt: ISODateString;
+}
+
+/** What the client sees about themselves. */
+export interface PortalClient {
+  id: ID;
+  name: string;
+  company?: string;
+}
+
+/** What the client sees about their own project(s) — no value/price fields. */
+export interface PortalProject {
+  id: ID;
+  name: string;
+  status: ProjectStatus;
+  statusLabel: string;
+  progressPercent: number;
+  deadline?: ISODateString;
+  stages: Array<{ stageName: string; state: "not_started" | "in_progress" | "done"; order: number }>;
+}

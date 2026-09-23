@@ -18,6 +18,7 @@ import { InvoiceStatusBadge } from "@/components/finance/badges";
 import { TaskFormModal } from "@/components/tasks/TaskFormModal";
 import { ProjectStageStrip } from "@/components/projects/ProjectStageStrip";
 import { ProjectTimeline } from "@/components/projects/ProjectTimeline";
+import { ProjectUpdatesPanel } from "@/components/projects/ProjectUpdatesPanel";
 import { ProjectStatusBadge } from "@/components/projects/badges";
 import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTasks";
@@ -39,6 +40,7 @@ const TABS = [
   { value: "tasks", label: "Tasks" },
   { value: "timeline", label: "Timeline" },
   { value: "finance", label: "Finance" },
+  { value: "updates", label: "Updates" },
   { value: "links", label: "Links" },
   { value: "notes", label: "Notes" },
 ];
@@ -377,6 +379,11 @@ export function ProjectDetailPage() {
               )}
             </Card>
         </div>
+      </TabPanel>
+
+      {/* UPDATES */}
+      <TabPanel when="updates" value={tab}>
+        <ProjectUpdatesPanel projectId={project.id} currentProgress={project.progressPercent} />
       </TabPanel>
 
       {/* LINKS */}

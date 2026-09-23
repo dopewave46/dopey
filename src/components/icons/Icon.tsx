@@ -40,7 +40,9 @@ export type IconName =
   | "orca"
   | "circle-dot"
   | "phone"
-  | "flag";
+  | "flag"
+  | "copy"
+  | "trash";
 
 const PATHS: Record<IconName, JSX.Element> = {
   dashboard: (
@@ -203,6 +205,18 @@ const PATHS: Record<IconName, JSX.Element> = {
     <>
       <path d="M6 21V4" />
       <path d="M6 4h11l-2.5 3.5L17 11H6" />
+    </>
+  ),
+  copy: (
+    <>
+      <rect x="9" y="9" width="12" height="12" rx="2" />
+      <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1" />
+    </>
+  ),
+  trash: (
+    <>
+      <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 13a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1l1-13" />
+      <path d="M10 11v6M14 11v6" />
     </>
   ),
 };

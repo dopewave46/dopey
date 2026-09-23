@@ -283,3 +283,45 @@ export const settingsSchemas = {
 
 /* ---------------- search ---------------- */
 export const searchSchemas = { query: z.object({ q: z.string().trim().min(1), limit: z.coerce.number().int().positive().max(50).optional() }) };
+
+/* ---------------- client portal (public-facing) ---------------- */
+export const portalAuthSchemas = {
+  login: {
+    body: z.object({
+      username: z.string().trim().min(1),
+      password: z.string().min(1),
+    }),
+  },
+};
+
+/* ---------------- client portal (admin-managed access) ---------------- */
+export const portalCredentialSchemas = {
+  create: {
+    params: idParam,
+    body: z.object({
+      username: z.string().trim().min(3).max(40).optional(),
+      password: z.string().min(8).max(72).optional(),
+    }),
+  },
+  update: {
+    params: idParam,
+    body: z.object({
+      enabled: z.boolean().optional(),
+      resetPassword: z.boolean().optional(),
+      password: z.string().min(8).max(72).optional(),
+    }),
+  },
+};
+
+/* ---------------- project updates (client portal timeline) ---------------- */
+export const projectUpdateSchemas = {
+  create: {
+    params: idParam,
+    body: z.object({
+      title: z.string().trim().min(1),
+      note: z.string().trim().optional(),
+      percentAtUpdate: z.coerce.number().int().min(0).max(100).optional(),
+    }),
+  },
+  removeParams: z.object({ id: z.string().min(1), updateId: z.string().min(1) }),
+};

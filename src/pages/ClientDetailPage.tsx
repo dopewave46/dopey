@@ -19,6 +19,7 @@ import { TaskFormModal } from "@/components/tasks/TaskFormModal";
 import { InvoiceStatusBadge } from "@/components/finance/badges";
 import { InvoiceFormModal } from "@/components/finance/InvoiceFormModal";
 import { RecordPaymentModal } from "@/components/finance/RecordPaymentModal";
+import { PortalAccessCard } from "@/components/clients/PortalAccessCard";
 import { useCrm } from "@/hooks/useCrm";
 import { useProjects } from "@/hooks/useProjects";
 import { useTasks } from "@/hooks/useTasks";
@@ -84,6 +85,7 @@ export function ClientDetailPage() {
     { value: "invoices", label: "Invoices", count: fin.invoices.length },
     { value: "payments", label: "Payments", count: fin.payments.length },
     { value: "tasks", label: "Tasks", count: clientTasks.length },
+    { value: "portal", label: "Portal" },
     { value: "notes", label: "Notes" },
     { value: "activity", label: "Activity" },
   ];
@@ -404,6 +406,10 @@ export function ClientDetailPage() {
             </ul>
           </Card>
         )}
+      </TabPanel>
+
+      <TabPanel when="portal" value={tab}>
+        <PortalAccessCard clientId={client.id} />
       </TabPanel>
 
       <TabPanel when="notes" value={tab}>

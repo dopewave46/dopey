@@ -26,9 +26,18 @@ import { SettingsPage } from "@/pages/SettingsPage";
 import { NotificationsPage } from "@/pages/NotificationsPage";
 import { NotFoundPage } from "@/pages/NotFoundPage";
 import { LoginPage } from "@/pages/LoginPage";
+import { PortalShell } from "@/layouts/PortalShell";
+import { PortalLoginPage } from "@/pages/portal/PortalLoginPage";
+import { PortalDashboardPage } from "@/pages/portal/PortalDashboardPage";
 
 export const router = createBrowserRouter([
   { path: "/login", element: <LoginPage /> },
+  { path: "/portal/login", element: <PortalLoginPage /> },
+  {
+    path: "/portal",
+    element: <PortalShell />,
+    children: [{ index: true, element: <PortalDashboardPage /> }],
+  },
   {
     path: "/",
     element: <AppShell />,

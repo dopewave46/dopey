@@ -9,9 +9,11 @@ export interface ProgressBarProps {
   size?: "sm" | "md";
   tone?: "crimson" | "success" | "warning" | "error";
   className?: string;
+  /** Overrides the default `--dur` fill transition — e.g. for a slower load-in animation. */
+  durationMs?: number;
 }
 
-export function ProgressBar({ value, label, size = "md", tone = "crimson", className }: ProgressBarProps) {
+export function ProgressBar({ value, label, size = "md", tone = "crimson", className, durationMs }: ProgressBarProps) {
   const pct = Math.max(0, Math.min(100, Math.round(value)));
   return (
     <div
@@ -22,7 +24,10 @@ export function ProgressBar({ value, label, size = "md", tone = "crimson", class
       aria-valuemax={100}
       aria-label={label}
     >
-      <span className={cn(styles.fill, styles[tone])} style={{ width: `${pct}%` }} />
+      <span
+        className={cn(styles.fill, styles[tone])}
+        style={{ width: `${pct}%`, transitionDuration: durationMs ? `${durationMs}ms` : undefined }}
+      />
     </div>
   );
 }

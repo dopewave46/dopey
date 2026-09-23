@@ -2,13 +2,18 @@ import { Router } from "express";
 import { wrap } from "../utils/wrap.js";
 import { created, noContent, ok } from "../utils/envelope.js";
 import { validate } from "../middleware/validate.js";
-import { clientSchemas } from "../schemas/index.js";
+import { clientSchemas, portalCredentialSchemas } from "../schemas/index.js";
 import { createClient, deleteClient, getClient, listClients, updateClient } from "../services/client.service.js";
 import { listProjects } from "../services/project.service.js";
 import { listTasks } from "../services/task.service.js";
 import { listActivities } from "../services/activity.service.js";
 import { listFollowUps } from "../services/followup.service.js";
 import { clientFinance } from "../services/finance.service.js";
+import {
+  createPortalCredentials,
+  getPortalCredentialInfo,
+  updatePortalCredentials,
+} from "../services/portal-admin.service.js";
 
 export const clientRoutes = Router();
 
@@ -27,3 +32,16 @@ clientRoutes.get("/:id/tasks", wrap(async (req, res) => ok(res, await listTasks(
 clientRoutes.get("/:id/finance", wrap(async (req, res) => ok(res, await clientFinance(req.params.id))));
 clientRoutes.get("/:id/activity", wrap(async (req, res) => ok(res, await listActivities({ entityType: "client", entityId: req.params.id }))));
 clientRoutes.get("/:id/follow-ups", wrap(async (req, res) => ok(res, await listFollowUps({ parentType: "client", parentId: req.params.id }))));
+
+/* Client portal access management (spec §4) — admin-only, never exposes the password hash. */
+clientRoutes.get("/:id/portal-credentials", wrap(async (req, res) => ok(res, await getPortalCredentialInfo(req.params.id))));
+clientRoutes.post(
+  "/:id/portal-credentials",
+  validate(portalCredentialSchemas.create),
+  wrap(async (req, res) => created(res, await createPortalCredentials(req.params.id, req.body))),
+);
+clientRoutes.patch(
+  "/:id/portal-credentials",
+  validate(portalCredentialSchemas.update),
+  wrap(async (req, res) => ok(res, await updatePortalCredentials(req.params.id, req.body))),
+);
